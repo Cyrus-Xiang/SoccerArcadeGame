@@ -44,11 +44,6 @@
       <itemPath>ProjectHeaders/EventCheckWrapper.h</itemPath>
       <itemPath>ProjectHeaders/EventCheckers.h</itemPath>
       <itemPath>ProjectHeaders/TestHarnessService0.h</itemPath>
-      <itemPath>ProjectHeaders/SoccerFSM.h</itemPath>
-      <itemPath>ProjectHeaders/DM_Display.h</itemPath>
-      <itemPath>ProjectHeaders/FontStuff.h</itemPath>
-      <itemPath>ProjectHeaders/LEDFSM.h</itemPath>
-      <itemPath>ProjectHeaders/PIC32_SPI_HAL.h</itemPath>
     </logicalFolder>
     <logicalFolder name="LinkerScript"
                    displayName="Linker Files"
@@ -88,7 +83,7 @@
         <targetPluginBoard></targetPluginBoard>
         <platformTool>noID</platformTool>
         <languageToolchain>XC32</languageToolchain>
-        <languageToolchainVersion>4.30</languageToolchainVersion>
+        <languageToolchainVersion>4.10</languageToolchainVersion>
         <platform>3</platform>
       </toolsSet>
       <packs>
