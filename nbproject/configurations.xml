@@ -60,6 +60,11 @@
       <itemPath>ProjectSource/EventCheckers.c</itemPath>
       <itemPath>ProjectSource/TestHarnessService0.c</itemPath>
       <itemPath>ProjectSource/main.c</itemPath>
+      <itemPath>ProjectSource/SoccerFSM.c</itemPath>
+      <itemPath>ProjectSource/LEDFSM.c</itemPath>
+      <itemPath>ProjectSource/DM_DisplayStarter.c</itemPath>
+      <itemPath>ProjectSource/FontStuff.c</itemPath>
+      <itemPath>ProjectSource/PIC32_SPI_HAL_Starter.c</itemPath>
     </logicalFolder>
     <logicalFolder name="ExternalFiles"
                    displayName="Important Files"
