@@ -25,8 +25,12 @@
 */
 #include "ES_Configure.h"
 #include "ES_Framework.h"
-#include "TemplateFSM.h"
+#include "SoccerFSM.h"
 
+#include "ES_Port.h"
+#include "terminal.h"
+#include "dbprintf.h"
+#include "LEDFSM.h"
 /*----------------------------- Module Defines ----------------------------*/
 
 /*---------------------------- Module Functions ---------------------------*/
@@ -37,7 +41,7 @@
 /*---------------------------- Module Variables ---------------------------*/
 // everybody needs a state variable, you may need others as well.
 // type of state variable should match htat of enum in header file
-static TemplateState_t CurrentState;
+static SoccerState_t CurrentState;
 
 // with the introduction of Gen2, we need a module level Priority var as well
 static uint8_t MyPriority;
@@ -61,7 +65,7 @@ static uint8_t MyPriority;
  Author
      J. Edward Carryer, 10/23/11, 18:55
 ****************************************************************************/
-bool InitTemplateFSM(uint8_t Priority)
+bool InitSoccerFSM(uint8_t Priority)
 {
   ES_Event_t ThisEvent;
 
@@ -97,7 +101,7 @@ bool InitTemplateFSM(uint8_t Priority)
  Author
      J. Edward Carryer, 10/23/11, 19:25
 ****************************************************************************/
-bool PostTemplateFSM(ES_Event_t ThisEvent)
+bool PostSoccerFSM(ES_Event_t ThisEvent)
 {
   return ES_PostToService(MyPriority, ThisEvent);
 }
@@ -119,7 +123,7 @@ bool PostTemplateFSM(ES_Event_t ThisEvent)
  Author
    J. Edward Carryer, 01/15/12, 15:23
 ****************************************************************************/
-ES_Event_t RunTemplateFSM(ES_Event_t ThisEvent)
+ES_Event_t RunSoccerFSM(ES_Event_t ThisEvent)
 {
   ES_Event_t ReturnEvent;
   ReturnEvent.EventType = ES_NO_EVENT; // assume no errors
@@ -181,7 +185,7 @@ ES_Event_t RunTemplateFSM(ES_Event_t ThisEvent)
  Author
      J. Edward Carryer, 10/23/11, 19:21
 ****************************************************************************/
-TemplateState_t QueryTemplateFSM(void)
+SoccerState_t QuerySoccerFSM(void)
 {
   return CurrentState;
 }

@@ -21,6 +21,11 @@
 
 // prototypes for event checkers
 
-bool Check4Keystroke(void);
+bool Check4Coin(void);
+bool Check4Shot(void);
+bool Check4Goal(void); //has both goal and no goal states in this event
+
+
+//do i need one for a timer? doubt it
 
 #endif /* EventCheckers_H */

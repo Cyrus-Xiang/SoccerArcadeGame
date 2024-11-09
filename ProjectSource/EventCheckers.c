@@ -106,16 +106,90 @@ bool Check4Lock(void)
  Author
    J. Edward Carryer, 08/06/13, 13:48
 ****************************************************************************/
-bool Check4Keystroke(void)
+
+
+//need to check the high to low input to determine coin insert
+bool Check4Coin(void)
 {
-  if (IsNewKeyReady())   // new key waiting?
-  {
     ES_Event_t ThisEvent;
-    ThisEvent.EventType   = ES_NEW_KEY;
-    ThisEvent.EventParam  = GetNewKey();
-    ES_PostAll(ThisEvent);
-    return true;
-  }
-  return false;
+  //initialize current local variables
+    bool ReturnVal = false;
+    bool CurrentCoinState= PORTBbits.RB6; //defining to read input of coin sensor on RB6, and maybe include FSM in this event checker
+    static bool LastCoinState;
+    LastCoinState= CurrentCoinState;  //only initializes on first call
+    
+    //check to see if different coin state (switch from low to high indicates the end of coin passing through)
+    if(CurrentCoinState != LastCoinState){
+        //if it is returning high coin just passed through
+        if(CurrentCoinState){
+            ThisEvent.EventType= CoinDetect;
+            PostSoccerFSM(ThisEvent);
+        }
+        ReturnVal = true;
+    }     
+  LastCoinState= CurrentCoinState;
+  return ReturnVal;
 }
+
+
+bool Check4Goal(void)
+{
+    ES_Event_t ThisEvent;
+  //initialize current local variables
+    bool ReturnVal = false;
+    
+    //initializing goal sensor readings
+    bool CurrentGoalState= PORTBbits.RB0; //defining to read input of coin sensor on RB0, and maybe include FSM in this event checker
+    static bool LastGoalState;
+    LastGoalState= CurrentGoalState;  //only initializes on first call
+    
+    //initializing miss sensor readings on pin RB1
+    bool CurrentMissState= PORTBbits.RB1;
+    static bool LastMissState;
+    LastMissState = CurrentMissState;
+    
+    //check to see if different goal state (switch from low to high indicates the end of ball passing through goal)
+    if(CurrentGoalState != LastGoalState){
+        //if it is returning high, ball just passed through
+        if(CurrentGoalState){
+            ThisEvent.EventType= GoalBeamBroken;
+            PostSoccerFSM(ThisEvent);
+        }
+        ReturnVal = true;
+    }
+    else if(CurrentMissState != LastMissState){
+        if(CurrentMissState){
+            ThisEvent.EventType= MissBeamBroken;
+            PostSoccerFSM(ThisEvent);
+        }
+        ReturnVal = true;
+    }
+  LastGoalState= CurrentGoalState;
+  LastMissState= CurrentMissState;
+  return ReturnVal;
+}
+
+
+bool Check4Shot(void)
+{
+    ES_Event_t ThisEvent;
+  //initialize current local variables
+    bool ReturnVal = false;
+    bool CurrentShotState= PORTBbits.RB5; //defining to read input of shot sensor
+    static bool LastShotState;
+    LastShotState= CurrentShotState;  //only initializes on first call
+    
+    //check to see if different Shot state (switch from low to high indicates the button is pressed)
+    if(CurrentShotState != LastShotState){
+        //if it is returning high coin just passed through
+        if(CurrentShotState){
+            ThisEvent.EventType= ShotButtonDown;
+            PostSoccerFSM(ThisEvent);
+        }
+        ReturnVal = true;
+    }     
+  LastShotState= CurrentShotState;
+  return ReturnVal;
+}
+
 

@@ -30,6 +30,8 @@
 #include "PIC32_SPI_HAL.h"
 #include "FontStuff.h"
 #include "ES_DeferRecall.h"
+#include "dbprintf.h"
+
 
 
 /*----------------------------- Module Defines ----------------------------*/

@@ -5,8 +5,8 @@
 
  ****************************************************************************/
 
-#ifndef FSMTemplate_H
-#define FSMTemplate_H
+#ifndef FSMSoccer_H
+#define FSMSoccer_H
 
 // Event Definitions
 #include "ES_Configure.h" /* gets us event definitions */
