@@ -143,8 +143,8 @@ bool Check4Goal(void)
     static bool LastGoalState;
     LastGoalState= CurrentGoalState;  //only initializes on first call
     
-    //initializing miss sensor readings on pin RB1
-    bool CurrentMissState= PORTBbits.RB1;
+    //initializing miss sensor readings on pin RB8
+    bool CurrentMissState= PORTBbits.RB8;
     static bool LastMissState;
     LastMissState = CurrentMissState;
     
@@ -190,6 +190,38 @@ bool Check4Shot(void)
     }     
   LastShotState= CurrentShotState;
   return ReturnVal;
+}
+
+bool Check4Keystroke(void)
+{
+  if (IsNewKeyReady()) // new key waiting?
+  {
+    ES_Event_t ThisEvent;
+    ThisEvent.EventType = ES_NEW_KEY;
+    ThisEvent.EventParam = GetNewKey();
+    ES_PostAll(ThisEvent);
+    return true;
+  }
+  return false;
+}
+
+// check for potentiometer change
+bool Check4Pot(void)
+{
+  int32_t diff_AD1;
+  static uint32_t Curr_AD_Val1[1];
+  static uint32_t Last_AD_Val1[] ={0};
+  ADC_MultiRead(Curr_AD_Val1);//(10 bits, 0-1023 corresponding to 0-3.3V
+  diff_AD1 = abs( Curr_AD_Val1[0] - Last_AD_Val1[0]);
+  if (diff_AD1 > 20){
+      Last_AD_Val1[0] = Curr_AD_Val1[0];
+      ES_Event_t ThisEvent;
+      ThisEvent.EventType = Pot_Val_Update;
+      ThisEvent.EventParam = (uint16_t) Curr_AD_Val1[0];
+      PostServoService(ThisEvent);
+      return true;
+      }
+  return false;
 }
 
 

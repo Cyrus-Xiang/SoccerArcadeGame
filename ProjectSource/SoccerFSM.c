@@ -95,16 +95,15 @@ bool InitSoccerFSM(uint8_t Priority)
   ANSELBbits.ANSB0= 0; //digital
   TRISBbits.TRISB0= 1; //RB0 input
   
-  //defining IR Miss Sensor RB1
-  ANSELBbits.ANSB1= 0; //digital
-  TRISBbits.TRISB1= 1; //RB1 input
+  //defining IR Miss Sensor RB8
+  TRISBbits.TRISB8= 1; //RB8 input,, always digital
   
-  //defining IR Miss Sensor RB1
+  //defining Shot button
   TRISBbits.TRISB5= 1; //RB5 input,, pin RB5 is always digital!
   
   //defining Potentiometer Input
-  ANSELBbits.ANSB15= 1; //analog
-  TRISBbits.TRISB15= 1; //RB4 input
+//  ANSELBbits.ANSB15= 1; //analog
+//  TRISBbits.TRISB15= 1; //RB15input
  
   
   //Defining OUTPUT Ports here
@@ -126,7 +125,8 @@ bool InitSoccerFSM(uint8_t Priority)
   
   
   //MOTORSERVO GOES HERE *****************************************************
-  
+//    ANSELBbits.ANSB3= 0; //digital
+//    TRISBbits.TRISB3= 0; //RB2 output
   
   
   //
@@ -204,17 +204,19 @@ ES_Event_t RunSoccerFSM(ES_Event_t ThisEvent)
         
         //move to next state
         NextState= Wait4Coin;
+        DB_printf("Initialized State");
     }
     break;
 
     case Wait4Coin:        // If current state is state one
     {
       //do this
+        DB_printf("Waitf for Coin State");
         if (ThisEvent.EventType == CoinDetect){
             //LED lights up player 1 turn;
             Player1LED=PORTBbits.RB11;
             Player1LED= 1;
-            
+            DB_printf("Coin Detected State"); 
 
             
             //charge up solenoid
@@ -305,7 +307,7 @@ ES_Event_t RunSoccerFSM(ES_Event_t ThisEvent)
             ReturnEvent.EventType = ES_NO_EVENT;  // Clear return event
         } else {
             // End game, display winner
-            DisplayWinner();
+//            DisplayWinner();
             NextState = EndGame;  // Transition to End Game
             PostSoccerFSM(ThisEvent);  // Trigger transition
             ReturnEvent.EventType = ES_NO_EVENT;  // Clear return event
@@ -322,10 +324,13 @@ ES_Event_t RunSoccerFSM(ES_Event_t ThisEvent)
   // end switch on Current State
   return ReturnEvent;
 }
+
+
+
 // Helper Functinos
 
 bool CheckMissBeamSensor(void) {
-    if (TRISBbits.TRISB5 == 0) {
+    if (PORTBbits.RB8 == 0) {
         // Sensor is blocked, return true
         return true;
     } else {
@@ -339,7 +344,7 @@ bool CheckBallReturnPlayer1() {
     if (CheckMissBeamSensor()) {
         Player1Rounds++;
         Player1Score += 1;  // Increase score for Player 1
-        UpdateDisplayForPlayer1();
+//        UpdateDisplayForPlayer1();
         return true;
     }
     return false;
@@ -350,44 +355,44 @@ bool CheckBallReturnPlayer2() {
     if (CheckMissBeamSensor()) {
         Player2Rounds++;
         Player2Score += 1;  // Increase score for Player 2
-        UpdateDisplayForPlayer2();
+//        UpdateDisplayForPlayer2();
         return true;
     }
     return false;
 }
 
 // Function to update the display for Player 1
-void UpdateDisplayForPlayer1() {
-    UpdateDotMatrixDisplay(Player1Score, Player2Score);
-    DisplayPlayerTurn(1); // Change this to the LED
-}
+//void UpdateDisplayForPlayer1() {
+//    UpdateDotMatrixDisplay(Player1Score, Player2Score);
+//    DisplayPlayerTurn(1); // Change this to the LED
+//}
 
 // Function to update the display for Player 2
-void UpdateDisplayForPlayer2() {
-    UpdateDotMatrixDisplay(Player1Score, Player2Score);
-    DisplayPlayerTurn(2); // Change this to the LED
-}
+//void UpdateDisplayForPlayer2() {
+//    UpdateDotMatrixDisplay(Player1Score, Player2Score);
+//    DisplayPlayerTurn(2); // Change this to the LED
+//}
 
 // Function to update the score display
-void UpdateDotMatrixDisplay(uint8_t Player1Score, uint8_t Player2Score) {
+//void UpdateDotMatrixDisplay(uint8_t Player1Score, uint8_t Player2Score) {
     // Display the current scores on the dot matrix (you can call your display functions here)
     // Example: DM_DisplayScore(Player1Score, Player2Score);
-    DM_DisplayScore(Player1Score, Player2Score);  // This function would handle the display update
-}
+//    DM_DisplayScore(Player1Score, Player2Score);  // This function would handle the display update
+//}
 
 // Display winner at the end of the game
-void DisplayWinner() {
-    if (Player1Score > Player2Score) {
-        // Display Player 1 as winner
-        DM_DisplayWinner(1);  // Example function to show Player 1 as winner
-    } else if (Player2Score > Player1Score) {
-        // Display Player 2 as winner
-        DM_DisplayWinner(2);  // Example function to show Player 2 as winner
-    } else {
-        // Display draw if scores are equal
-        DM_DisplayDraw();  // Example function to display a draw
-    }
-}
+//void DisplayWinner() {
+//    if (Player1Score > Player2Score) {
+//        // Display Player 1 as winner
+//        DM_DisplayWinner(1);  // Example function to show Player 1 as winner
+//    } else if (Player2Score > Player1Score) {
+//        // Display Player 2 as winner
+//        DM_DisplayWinner(2);  // Example function to show Player 2 as winner
+//    } else {
+//        // Display draw if scores are equal
+//        DM_DisplayDraw();  // Example function to display a draw
+//    }
+//}
 /****************************************************************************
  Function
      QueryTemplateSM

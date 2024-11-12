@@ -24,6 +24,9 @@ typedef enum
 bool InitSoccerFSM(uint8_t Priority);
 bool PostSoccerFSM(ES_Event_t ThisEvent);
 ES_Event_t RunSoccerFSM(ES_Event_t ThisEvent);
+bool CheckMissBeamSensor(void);
+bool CheckBallReturnPlayer1();
+bool CheckBallReturnPlayer2();
 SoccerState_t QuerySoccerFSM(void);
 
 #endif /* FSMTemplate_H */
