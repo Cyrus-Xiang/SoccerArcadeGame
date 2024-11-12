@@ -49,6 +49,11 @@ static SoccerState_t NextState; //define the next state in run function
 static bool SolenoidCharge;
 static bool CoinLED;
 static bool Player1LED;
+static uint8_t Player1Rounds = 0;
+static uint8_t Player2Rounds = 0;
+static uint8_t CurrentRound = 1;
+static uint8_t Player1Score = 0;
+static uint8_t Player2Score = 0;
 
 // with the introduction of Gen2, we need a module level Priority var as well
 static uint8_t MyPriority;
@@ -214,7 +219,7 @@ ES_Event_t RunSoccerFSM(ES_Event_t ThisEvent)
             
             //charge up solenoid
             SolenoidCharge= PORTBbits.RB2;
-            SolenoidCharge= 1; //by sending current to solenoid, we charge it
+            SolenoidCharge= 0; //by sending current to solenoid, we charge it
             
             //allow goalie movement
             //***** DO THIS NEED SERVO SERVICE HERE************************************************
@@ -233,8 +238,10 @@ ES_Event_t RunSoccerFSM(ES_Event_t ThisEvent)
             
             //launch solenoid
             SolenoidCharge= PORTBbits.RB2;
-            SolenoidCharge= 0; //by sending current to solenoid, we charge it
+            SolenoidCharge= 1; //by sending current to solenoid, we charge it
             NextState= Wait4Player1Ball;
+            PostSoccerFSM(ThisEvent);  // Trigger transition
+            ReturnEvent.EventType = ES_NO_EVENT;  // Clear return event            
         }
     }
     break;
@@ -245,14 +252,24 @@ ES_Event_t RunSoccerFSM(ES_Event_t ThisEvent)
             
             //launch solenoid
             SolenoidCharge= PORTBbits.RB2;
-            SolenoidCharge= 0; //by sending current to solenoid, we charge it
+            SolenoidCharge= 1; //by sending current to solenoid, we charge it
             NextState= Wait4Player2Ball;
+            PostSoccerFSM(ThisEvent);  // Trigger transition
+            ReturnEvent.EventType = ES_NO_EVENT;  // Clear return event            
         }
     }
     break;
     
     case Wait4Player1Ball:        // If current state is state one
-    {
+    
+        if (CheckBallReturnPlayer1()) {
+            // Ball returned for Player 1, transition to next state
+            SolenoidCharge= PORTBbits.RB2;
+            SolenoidCharge= 0;            
+            NextState = Wait4Player1Shot;
+            PostSoccerFSM(ThisEvent);  // Trigger transition
+            ReturnEvent.EventType = ES_NO_EVENT;  // Clear return event
+        }
       //if goal beam broken
         //increment player 1 score (need to init this counter somewhere)
         //charge up solenoid
@@ -263,19 +280,38 @@ ES_Event_t RunSoccerFSM(ES_Event_t ThisEvent)
             //charge up solenoid
         // light up player2 led
         //reinitialize timer
-    }
+    
     break;
     
     case Wait4Player2Ball:        // If current state is state one
-    {
+        if (CheckBallReturnPlayer1()) {
+            // Ball returned for Player 1, transition to next state
+            SolenoidCharge= PORTBbits.RB2;
+            SolenoidCharge= 0;
+            NextState = Wait4Player1Shot;
+            PostSoccerFSM(ThisEvent);  // Trigger transition
+            ReturnEvent.EventType = ES_NO_EVENT;  // Clear return event
+        }
       //do this
-    }
+    
     break;
     
     case CheckingEndGame:        // If current state is state one
-    {
+        if (CurrentRound < 2) {
+            // If rounds are less than 2, continue the game
+            CurrentRound++;
+            NextState = Wait4Player1Shot;  // Next round
+            PostSoccerFSM(ThisEvent);  // Trigger transition
+            ReturnEvent.EventType = ES_NO_EVENT;  // Clear return event
+        } else {
+            // End game, display winner
+            DisplayWinner();
+            NextState = EndGame;  // Transition to End Game
+            PostSoccerFSM(ThisEvent);  // Trigger transition
+            ReturnEvent.EventType = ES_NO_EVENT;  // Clear return event
+        }    
       //do this
-    }
+    
     break;
     
     
@@ -286,7 +322,72 @@ ES_Event_t RunSoccerFSM(ES_Event_t ThisEvent)
   // end switch on Current State
   return ReturnEvent;
 }
+// Helper Functinos
 
+bool CheckMissBeamSensor(void) {
+    if (TRISBbits.TRISB5 == 0) {
+        // Sensor is blocked, return true
+        return true;
+    } else {
+        // Sensor is not blocked, return false
+        return false;
+    }
+}
+
+// Helper function to check Player 1's ball return
+bool CheckBallReturnPlayer1() {
+    if (CheckMissBeamSensor()) {
+        Player1Rounds++;
+        Player1Score += 1;  // Increase score for Player 1
+        UpdateDisplayForPlayer1();
+        return true;
+    }
+    return false;
+}
+
+// Helper function to check Player 2's ball return
+bool CheckBallReturnPlayer2() {
+    if (CheckMissBeamSensor()) {
+        Player2Rounds++;
+        Player2Score += 1;  // Increase score for Player 2
+        UpdateDisplayForPlayer2();
+        return true;
+    }
+    return false;
+}
+
+// Function to update the display for Player 1
+void UpdateDisplayForPlayer1() {
+    UpdateDotMatrixDisplay(Player1Score, Player2Score);
+    DisplayPlayerTurn(1); // Change this to the LED
+}
+
+// Function to update the display for Player 2
+void UpdateDisplayForPlayer2() {
+    UpdateDotMatrixDisplay(Player1Score, Player2Score);
+    DisplayPlayerTurn(2); // Change this to the LED
+}
+
+// Function to update the score display
+void UpdateDotMatrixDisplay(uint8_t Player1Score, uint8_t Player2Score) {
+    // Display the current scores on the dot matrix (you can call your display functions here)
+    // Example: DM_DisplayScore(Player1Score, Player2Score);
+    DM_DisplayScore(Player1Score, Player2Score);  // This function would handle the display update
+}
+
+// Display winner at the end of the game
+void DisplayWinner() {
+    if (Player1Score > Player2Score) {
+        // Display Player 1 as winner
+        DM_DisplayWinner(1);  // Example function to show Player 1 as winner
+    } else if (Player2Score > Player1Score) {
+        // Display Player 2 as winner
+        DM_DisplayWinner(2);  // Example function to show Player 2 as winner
+    } else {
+        // Display draw if scores are equal
+        DM_DisplayDraw();  // Example function to display a draw
+    }
+}
 /****************************************************************************
  Function
      QueryTemplateSM
