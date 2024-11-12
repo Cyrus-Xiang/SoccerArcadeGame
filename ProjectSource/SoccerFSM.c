@@ -88,15 +88,15 @@ bool InitSoccerFSM(uint8_t Priority)
   ThisEvent.EventType = ES_INIT;
   
   //defining INPUT Ports here
-  //Coin IR Sensor Input to MicroController at port RB6
-  TRISBbits.TRISB6= 1; // RB6 input,, pin RB6 is always digital!
+  //Coin IR Sensor Input to MicroController at port RB8
+  TRISBbits.TRISB8= 1; // RB8 input,, pin RB8 is always digital!
+ 
+  //defining IR Goal Sensor input RB9
+  TRISBbits.TRISB9= 1; //RB9 input, always digital
   
-  //defining IR Goal Sensor input RB0
-  ANSELBbits.ANSB0= 0; //digital
-  TRISBbits.TRISB0= 1; //RB0 input
-  
-  //defining IR Miss Sensor RB8
-  TRISBbits.TRISB8= 1; //RB8 input,, always digital
+  //defining IR Miss Sensor RB13
+   ANSELBbits.ANSB13= 0; //digital
+   TRISBbits.TRISB13= 1; //RB13 input
   
   //defining Shot button
   TRISBbits.TRISB5= 1; //RB5 input,, pin RB5 is always digital!
@@ -120,7 +120,7 @@ bool InitSoccerFSM(uint8_t Priority)
   //PLAYER 2 SHOOT INDICATOR OUTPUT LED
   ANSELBbits.ANSB12= 0; //digital
   TRISBbits.TRISB12= 0; //RB12 output
-  
+  DB_printf("FSM initialized, all pins set \n");
   // LED MATRIX OUTPUT STUFF (SPI) COULD WE USE THIS WITH THE SPI HAL?? PROBABLY
   
   
@@ -134,6 +134,7 @@ bool InitSoccerFSM(uint8_t Priority)
   
   //put us into initial state
   CurrentState=InitPState;
+  
   
   if (ES_PostToService(MyPriority, ThisEvent) == true)
   {
@@ -204,7 +205,8 @@ ES_Event_t RunSoccerFSM(ES_Event_t ThisEvent)
         
         //move to next state
         NextState= Wait4Coin;
-        DB_printf("Initialized State");
+        DB_printf("Initialized State soccer/n");
+        ReturnEvent.EventType = ES_NO_EVENT;  // Clear return event   
     }
     break;
 
@@ -330,7 +332,7 @@ ES_Event_t RunSoccerFSM(ES_Event_t ThisEvent)
 // Helper Functinos
 
 bool CheckMissBeamSensor(void) {
-    if (PORTBbits.RB8 == 0) {
+    if (PORTBbits.RB13 == 0) {
         // Sensor is blocked, return true
         return true;
     } else {

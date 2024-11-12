@@ -103,14 +103,14 @@ bool InitTestHarnessService0(uint8_t Priority)
   // When doing testing, it is useful to announce just which program
   // is running.
   clrScrn();
-  puts("\rStarting Test Harness for \r");
-  DB_printf( "the 2nd Generation Events & Services Framework V2.4\r\n");
-  DB_printf( "compiled at %s on %s\n", __TIME__, __DATE__);
-  DB_printf( "\n\r\n");
-  DB_printf( "Press any key to post key-stroke events to Service 0\n\r");
-  DB_printf( "Press 'd' to test event deferral \n\r");
-  DB_printf( "Press 'r' to test event recall \n\r");
-  DB_printf( "Press 'p' to test posting from an interrupt \n\r");
+  // puts("\rStarting Test Harness for \r");
+  // DB_printf( "the 2nd Generation Events & Services Framework V2.4\r\n");
+  // DB_printf( "compiled at %s on %s\n", __TIME__, __DATE__);
+  // DB_printf( "\n\r\n");
+  // DB_printf( "Press any key to post key-stroke events to Service 0\n\r");
+  // DB_printf( "Press 'd' to test event deferral \n\r");
+  // DB_printf( "Press 'r' to test event recall \n\r");
+  // DB_printf( "Press 'p' to test posting from an interrupt \n\r");
 
   /********************************************
    in here you write your initialization code
@@ -194,6 +194,18 @@ ES_Event_t RunTestHarnessService0(ES_Event_t ThisEvent)
       ES_Timer_InitTimer(SERVICE0_TIMER, HALF_SEC);
       puts("Service 00:");
       DB_printf("\rES_INIT received in Service %d\r\n", MyPriority);
+    }
+    break;
+    case CoinDetect:{
+//        DB_printf("coindetected posted in testharness \n");
+    }
+    break;
+    case GoalBeamBroken:{
+//        DB_printf("goalBeamBroken posted in testharness \n");
+    }
+    break;
+    case MissBeamBroken:{
+//        DB_printf("MissBeamBroken posted in testharness \n");
     }
     break;
     case ES_TIMEOUT:   // re-start timer & announce

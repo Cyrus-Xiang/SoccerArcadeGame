@@ -114,16 +114,16 @@ bool Check4Coin(void)
     ES_Event_t ThisEvent;
   //initialize current local variables
     bool ReturnVal = false;
-    bool CurrentCoinState= PORTBbits.RB6; //defining to read input of coin sensor on RB6, and maybe include FSM in this event checker
-    static bool LastCoinState;
-    LastCoinState= CurrentCoinState;  //only initializes on first call
-    
+    bool CurrentCoinState= PORTBbits.RB8; //defining to read input of coin sensor on RB6, and maybe include FSM in this event checker
+    static bool LastCoinState = 1;
     //check to see if different coin state (switch from low to high indicates the end of coin passing through)
     if(CurrentCoinState != LastCoinState){
         //if it is returning high coin just passed through
-        if(CurrentCoinState){
+        if(!CurrentCoinState){
             ThisEvent.EventType= CoinDetect;
             PostSoccerFSM(ThisEvent);
+            PostTestHarnessService0(ThisEvent);
+//            DB_printf("coin detected in event checker \n");
         }
         ReturnVal = true;
     }     
@@ -139,28 +139,29 @@ bool Check4Goal(void)
     bool ReturnVal = false;
     
     //initializing goal sensor readings
-    bool CurrentGoalState= PORTBbits.RB0; //defining to read input of coin sensor on RB0, and maybe include FSM in this event checker
-    static bool LastGoalState;
-    LastGoalState= CurrentGoalState;  //only initializes on first call
+    bool CurrentGoalState= PORTBbits.RB9; //defining to read input of goal sensor on RB9, and maybe include FSM in this event checker
+    static bool LastGoalState = 1;
+
     
-    //initializing miss sensor readings on pin RB8
-    bool CurrentMissState= PORTBbits.RB8;
-    static bool LastMissState;
-    LastMissState = CurrentMissState;
+    //initializing miss sensor readings on pin RB13
+    bool CurrentMissState= PORTBbits.RB13;
+    static bool LastMissState = 1;
     
     //check to see if different goal state (switch from low to high indicates the end of ball passing through goal)
     if(CurrentGoalState != LastGoalState){
         //if it is returning high, ball just passed through
-        if(CurrentGoalState){
+        if(!CurrentGoalState){
             ThisEvent.EventType= GoalBeamBroken;
             PostSoccerFSM(ThisEvent);
+            PostTestHarnessService0(ThisEvent);
         }
         ReturnVal = true;
     }
     else if(CurrentMissState != LastMissState){
-        if(CurrentMissState){
+        if(!CurrentMissState){
             ThisEvent.EventType= MissBeamBroken;
             PostSoccerFSM(ThisEvent);
+            PostTestHarnessService0(ThisEvent);
         }
         ReturnVal = true;
     }
@@ -176,8 +177,7 @@ bool Check4Shot(void)
   //initialize current local variables
     bool ReturnVal = false;
     bool CurrentShotState= PORTBbits.RB5; //defining to read input of shot sensor
-    static bool LastShotState;
-    LastShotState= CurrentShotState;  //only initializes on first call
+    static bool LastShotState = 0;
     
     //check to see if different Shot state (switch from low to high indicates the button is pressed)
     if(CurrentShotState != LastShotState){
@@ -211,7 +211,7 @@ bool Check4Pot(void)
   int32_t diff_AD1;
   static uint32_t Curr_AD_Val1[1];
   static uint32_t Last_AD_Val1[] ={0};
-  ADC_MultiRead(Curr_AD_Val1);//(10 bits, 0-1023 corresponding to 0-3.3V
+  ADC_MultiRead(Curr_AD_Val1);//10 bits, 0-1023 corresponding to 0-3.3V
   diff_AD1 = abs( Curr_AD_Val1[0] - Last_AD_Val1[0]);
   if (diff_AD1 > 20){
       Last_AD_Val1[0] = Curr_AD_Val1[0];
