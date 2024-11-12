@@ -185,6 +185,7 @@ bool Check4Shot(void)
         if(CurrentShotState){
             ThisEvent.EventType= ShotButtonDown;
             PostSoccerFSM(ThisEvent);
+            
         }
         ReturnVal = true;
     }     

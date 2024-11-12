@@ -214,6 +214,8 @@ ES_Event_t RunSoccerFSM(ES_Event_t ThisEvent)
     {
       //do this
         DB_printf("Waitf for Coin State");
+      LATBbits.LATB10 = 1;
+
         if (ThisEvent.EventType == CoinDetect){
             //LED lights up player 1 turn;
             Player1LED=PORTBbits.RB11;
@@ -241,8 +243,9 @@ ES_Event_t RunSoccerFSM(ES_Event_t ThisEvent)
         if (ThisEvent.EventType == ShotButtonDown || ThisEvent.EventType == ES_TIMEOUT){
             
             //launch solenoid
-            SolenoidCharge= PORTBbits.RB2;
-            SolenoidCharge= 1; //by sending current to solenoid, we charge it
+            LATBbits.LATB10 = 0;
+            LATBbits.LATB11 = 1;
+
             NextState= Wait4Player1Ball;
             PostSoccerFSM(ThisEvent);  // Trigger transition
             ReturnEvent.EventType = ES_NO_EVENT;  // Clear return event            
@@ -253,10 +256,10 @@ ES_Event_t RunSoccerFSM(ES_Event_t ThisEvent)
     case Wait4Player2Shot:        // If current state is state one
     {
       if (ThisEvent.EventType == ShotButtonDown || ThisEvent.EventType == ES_TIMEOUT){
-            
+            DB_printf("button detected in FSM \n");
             //launch solenoid
-            SolenoidCharge= PORTBbits.RB2;
-            SolenoidCharge= 1; //by sending current to solenoid, we charge it
+          LATBbits.LATB11 = 0;
+          LATBbits.LATB12 = 1;
             NextState= Wait4Player2Ball;
             PostSoccerFSM(ThisEvent);  // Trigger transition
             ReturnEvent.EventType = ES_NO_EVENT;  // Clear return event            
