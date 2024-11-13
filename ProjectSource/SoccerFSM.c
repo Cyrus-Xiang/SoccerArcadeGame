@@ -234,8 +234,6 @@ ES_Event_t RunSoccerFSM(ES_Event_t ThisEvent)
     {
       //turn on LED indicating coin slot
         LATBbits.LATB10 = 1;
-
-        
         //move to next state
         NextState= Wait4Coin;
         DB_printf("Initialized State soccer \n");
@@ -249,20 +247,25 @@ ES_Event_t RunSoccerFSM(ES_Event_t ThisEvent)
        
 
         if (ThisEvent.EventType == CoinDetect){
-            
+            //clear player scores and round numbers for the new game
+            Player1Rounds = 0;
+            Player2Rounds = 0;
+            Player1Score = 0;
+            Player2Score = 0;
+            CurrentRound = 1;
             //LED lights up player 1 turn;
             LATBbits.LATB11 = 1; 
 //            DB_printf("Coin Detected State"); 
             LATBbits.LATB10 = 0; //turns off coin indicator LED
  
             //allow goalie movement
-            //***** DO THIS NEED SERVO SERVICE HERE************************************************
- 
-            NextState= Wait4Player1Shot; //setting next state as waiting for player 1 to shoot
-            DB_printf("went to Wait for Player 1 Shot \n");
             ES_Timer_InitTimer(SHOTCLOCK_TIMER, TimePerRound_ms);
             Event2Post.EventType = EnableServo;
             PostServoService(Event2Post);
+
+            NextState= Wait4Player1Shot; //setting next state as waiting for player 1 to shoot
+            DB_printf("went to Wait for Player 1 Shot \n");
+            
         }
   
              
