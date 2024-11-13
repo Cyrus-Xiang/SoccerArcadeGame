@@ -46,12 +46,11 @@
 // type of state variable should match htat of enum in header file
 static SoccerState_t CurrentState;
 static SoccerState_t NextState; //define the next state in run function
-static bool SolenoidCharge;
 static bool CoinLED;
 static bool Player1LED;
 static uint8_t Player1Rounds = 0;
 static uint8_t Player2Rounds = 0;
-static uint8_t CurrentRound = 1;
+//static uint8_t CurrentRound = 1;
 static uint8_t Player1Score = 0;
 static uint8_t Player2Score = 0;
 
@@ -110,7 +109,7 @@ bool InitSoccerFSM(uint8_t Priority)
   //Solenoid on pin RB2
   ANSELBbits.ANSB2= 0; //digital
   TRISBbits.TRISB2= 0; //RB2 output
-  
+  LATBbits.LATB2 = 0; //initialize the solenoid as off
   //COIN LED OUTPUT PIN
   TRISBbits.TRISB10= 0; //RB10 output,, always digital
   
@@ -187,9 +186,39 @@ bool PostSoccerFSM(ES_Event_t ThisEvent)
 ****************************************************************************/
 ES_Event_t RunSoccerFSM(ES_Event_t ThisEvent)
 {
+    static uint8_t CurrentRound = 1;
+    
   ES_Event_t ReturnEvent;
   ReturnEvent.EventType = ES_NO_EVENT; // assume no errors
+  ES_Event_t Event2Post;
 
+  switch (ThisEvent.EventType)
+  {
+    case ES_TIMEOUT:{
+      if (ThisEvent.EventParam == Solenoid_shutdown_timer)
+      {
+        LATBbits.LATB2 = 0; //turn off solenoid   
+        DB_printf("solenoid turned off\n");
+
+      }
+      
+    }
+    break;
+  case CoinDetect:{
+    DB_printf("coin detected\n");
+  }
+    break;
+  case MissBeamBroken:{
+    DB_printf("shot missed \n");
+  }
+    break;
+    case GoalBeamBroken:{
+    DB_printf("goal detected\n");
+  }
+    break;
+  default:
+    break;
+  }
   
  //used in case we do not enter any switch cases
   NextState=CurrentState;
@@ -199,123 +228,160 @@ ES_Event_t RunSoccerFSM(ES_Event_t ThisEvent)
     case InitPState:        // If current state is initial Psedudo State
     {
       //turn on LED indicating coin slot
-        CoinLED= PORTBbits.RB10;
-        CoinLED= 1;
+        LATBbits.LATB10 = 1;
 
         
         //move to next state
         NextState= Wait4Coin;
-        DB_printf("Initialized State soccer/n");
-        ReturnEvent.EventType = ES_NO_EVENT;  // Clear return event   
+        DB_printf("Initialized State soccer \n");
+        DB_printf("went to Wait for Coin State \n");
+       
     }
     break;
 
     case Wait4Coin:        // If current state is state one
     {
-      //do this
-        DB_printf("Waitf for Coin State");
-      LATBbits.LATB10 = 1;
+       
 
         if (ThisEvent.EventType == CoinDetect){
-            //LED lights up player 1 turn;
-            Player1LED=PORTBbits.RB11;
-            Player1LED= 1;
-            DB_printf("Coin Detected State"); 
-
             
-            //charge up solenoid
-            SolenoidCharge= PORTBbits.RB2;
-            SolenoidCharge= 0; //by sending current to solenoid, we charge it
+            //LED lights up player 1 turn;
+            LATBbits.LATB11 = 1; 
+//            DB_printf("Coin Detected State"); 
+
+            LATBbits.LATB10 = 0; //turns off coin indicator LED
+            
+            
             
             //allow goalie movement
             //***** DO THIS NEED SERVO SERVICE HERE************************************************
             
             //Set and Start Timer by initializing:
             ES_Timer_InitTimer(SHOTCLOCK_TIMER, FIFTEEN_SEC);
+            
+            NextState= Wait4Player1Shot; //setting next state as waiting for player 1 to shoot
+            DB_printf("went to Wait for Player 1 Shot \n");
         }
   
-              NextState= Wait4Player1Shot; //setting next state as waiting for player 1 to shoot
+             
     }
     break;
     
     case Wait4Player1Shot:        // If current state is state one
     {
-        if (ThisEvent.EventType == ShotButtonDown || ThisEvent.EventType == ES_TIMEOUT){
+        
+//        if (ThisEvent.EventType == ShotButtonDown || ThisEvent.EventType == ES_TIMEOUT){
+        if (ThisEvent.EventType == ShotButtonDown){ //player 1 shoots here
             
             //launch solenoid
-            LATBbits.LATB10 = 0;
-            LATBbits.LATB11 = 1;
+            LATBbits.LATB2 = 1;
+            ES_Timer_InitTimer(Solenoid_shutdown_timer,1000);//start timer for shutting down solenoid
+            //turn off player 1 indicator light
+            LATBbits.LATB11 = 0;
 
             NextState= Wait4Player1Ball;
-            PostSoccerFSM(ThisEvent);  // Trigger transition
-            ReturnEvent.EventType = ES_NO_EVENT;  // Clear return event            
+            DB_printf("went to Wait for Player 1 Ball \n");
         }
     }
     break;
     
     case Wait4Player2Shot:        // If current state is state one
-    {
-      if (ThisEvent.EventType == ShotButtonDown || ThisEvent.EventType == ES_TIMEOUT){
+    {   
+//      if (ThisEvent.EventType == ShotButtonDown || ThisEvent.EventType == ES_TIMEOUT){ //player 2 shoots
+    if (ThisEvent.EventType == ShotButtonDown){ //player 2 shoots
             DB_printf("button detected in FSM \n");
+            
+            
             //launch solenoid
-          LATBbits.LATB11 = 0;
-          LATBbits.LATB12 = 1;
+            LATBbits.LATB2 = 1;
+            ES_Timer_InitTimer(Solenoid_shutdown_timer,1000);//start timer for shutting down solenoid
+            //turn off player 2 indicator
+            LATBbits.LATB12 = 0;
             NextState= Wait4Player2Ball;
-            PostSoccerFSM(ThisEvent);  // Trigger transition
-            ReturnEvent.EventType = ES_NO_EVENT;  // Clear return event            
+          DB_printf("went to wait 4 player2 ball \n");
+                
         }
     }
     break;
     
-    case Wait4Player1Ball:        // If current state is state one
+    case Wait4Player1Ball:        // waiting for player 1 to either score or miss
     
-        if (CheckBallReturnPlayer1()) {
+        if (ThisEvent.EventType == GoalBeamBroken) { // GOALLLL
+            
+            //increase goal counter and player 1 round
+            Player1Rounds++;
+            Player1Score += 1;
+            
             // Ball returned for Player 1, transition to next state
-            SolenoidCharge= PORTBbits.RB2;
-            SolenoidCharge= 0;            
-            NextState = Wait4Player1Shot;
-            PostSoccerFSM(ThisEvent);  // Trigger transition
-            ReturnEvent.EventType = ES_NO_EVENT;  // Clear return event
+              
+            
+             //LED lights up player 2 turn;
+            LATBbits.LATB12 = 1; 
+            NextState = Wait4Player2Shot;
+            DB_printf("goal!! went to Player 2 Shot \n");
+            // NEED TO INITIALIZE TIMER HERE ***************************************************
         }
-      //if goal beam broken
-        //increment player 1 score (need to init this counter somewhere)
-        //charge up solenoid
-        // light up player2 led
-        //reinitialize timer
-        
-      //if miss beam broken
-            //charge up solenoid
-        // light up player2 led
-        //reinitialize timer
     
+        else if (ThisEvent.EventType == MissBeamBroken){
+            Player1Rounds++;
+            // Ball returned for Player 1, transition to next state
+             
+            
+             //LED lights up player 2 turn;
+            LATBbits.LATB12 = 1; 
+            NextState = Wait4Player2Shot;
+            DB_printf("missed! went to Player 2 Shot \n");
+             // NEED TO INITIALIZE TIMER HERE ***************************************************
+        }
+    
+
     break;
     
     case Wait4Player2Ball:        // If current state is state one
-        if (CheckBallReturnPlayer1()) {
-            // Ball returned for Player 1, transition to next state
-            SolenoidCharge= PORTBbits.RB2;
-            SolenoidCharge= 0;
-            NextState = Wait4Player1Shot;
-            PostSoccerFSM(ThisEvent);  // Trigger transition
-            ReturnEvent.EventType = ES_NO_EVENT;  // Clear return event
-        }
+
       //do this
+    if (ThisEvent.EventType == GoalBeamBroken) { // GOALLLL
+            
+            //increase goal counter and player 1 round
+            Player2Rounds++;
+            Player2Score += 1;
+            
+            // Ball returned for Player 1, transition to next state 
+  
+            NextState = CheckingEndGame;
+            PostSoccerFSM(Event2Post);
+            DB_printf("goal!! went to Checking Endgame \n");
+            // NEED TO INITIALIZE TIMER HERE ***************************************************
+        }
+    
+        else if (ThisEvent.EventType == MissBeamBroken){
+            Player2Rounds++;
+            // Ball returned for Player 1, transition to next state
+              
+            NextState = CheckingEndGame;
+            PostSoccerFSM(Event2Post);
+            DB_printf("missed!! went to wait Checking Endgame\n");
+             // NEED TO INITIALIZE TIMER HERE ***************************************************
+        }
     
     break;
     
     case CheckingEndGame:        // If current state is state one
+    DB_printf("Checking End Game \n");
         if (CurrentRound < 2) {
             // If rounds are less than 2, continue the game
             CurrentRound++;
             NextState = Wait4Player1Shot;  // Next round
-            PostSoccerFSM(ThisEvent);  // Trigger transition
-            ReturnEvent.EventType = ES_NO_EVENT;  // Clear return event
-        } else {
+            LATBbits.LATB11 = 1; //LED lights up player 1 turn;
+           
+            DB_printf("went to wait for player 1 shot, start round 2 \n");
+        } 
+        else {
             // End game, display winner
 //            DisplayWinner();
             NextState = EndGame;  // Transition to End Game
-            PostSoccerFSM(ThisEvent);  // Trigger transition
-            ReturnEvent.EventType = ES_NO_EVENT;  // Clear return event
+            DB_printf("End Game/n");
+            
         }    
       //do this
     
@@ -334,37 +400,37 @@ ES_Event_t RunSoccerFSM(ES_Event_t ThisEvent)
 
 // Helper Functinos
 
-bool CheckMissBeamSensor(void) {
-    if (PORTBbits.RB13 == 0) {
-        // Sensor is blocked, return true
-        return true;
-    } else {
-        // Sensor is not blocked, return false
-        return false;
-    }
-}
-
-// Helper function to check Player 1's ball return
-bool CheckBallReturnPlayer1() {
-    if (CheckMissBeamSensor()) {
-        Player1Rounds++;
-        Player1Score += 1;  // Increase score for Player 1
-//        UpdateDisplayForPlayer1();
-        return true;
-    }
-    return false;
-}
-
-// Helper function to check Player 2's ball return
-bool CheckBallReturnPlayer2() {
-    if (CheckMissBeamSensor()) {
-        Player2Rounds++;
-        Player2Score += 1;  // Increase score for Player 2
-//        UpdateDisplayForPlayer2();
-        return true;
-    }
-    return false;
-}
+//bool CheckMissBeamSensor(void) {
+//    if (PORTBbits.RB13 == 0) {
+//        // Sensor is blocked, return true
+//        return true;
+//    } else {
+//        // Sensor is not blocked, return false
+//        return false;
+//    }
+//}
+//
+//// Helper function to check Player 1's ball return
+//bool CheckBallReturnPlayer1() {
+//    if (CheckMissBeamSensor()) {
+//        Player1Rounds++;
+//        Player1Score += 1;  // Increase score for Player 1
+////        UpdateDisplayForPlayer1();
+//        return true;
+//    }
+//    return false;
+//}
+//
+//// Helper function to check Player 2's ball return
+//bool CheckBallReturnPlayer2() {
+//    if (CheckMissBeamSensor()) {
+//        Player2Rounds++;
+//        Player2Score += 1;  // Increase score for Player 2
+////        UpdateDisplayForPlayer2();
+//        return true;
+//    }
+//    return false;
+//}
 
 // Function to update the display for Player 1
 //void UpdateDisplayForPlayer1() {

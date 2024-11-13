@@ -80,9 +80,7 @@ bool InitServoService(uint8_t Priority)
   /********************************************
    in here you write your initialization code
    *******************************************/
-      // initialize the port for button signal
-    TRISBbits.TRISB12 = 1; // configure the pin as input 
-    ANSELBbits.ANSB12 =0;
+
   //initialze pins for for potentiometer
   ADC_ConfigAutoScan(BIT9HI);//bit5 corresponds to AN5/RB3
   TRISBbits.TRISB15 = 1; // configure the pin as input

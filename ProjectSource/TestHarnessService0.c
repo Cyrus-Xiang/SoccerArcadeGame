@@ -181,6 +181,7 @@ bool PostTestHarnessService0(ES_Event_t ThisEvent)
 ES_Event_t RunTestHarnessService0(ES_Event_t ThisEvent)
 {
   ES_Event_t ReturnEvent;
+  ES_Event_t Event2Post;
   ReturnEvent.EventType = ES_NO_EVENT; // assume no errors
   static char DeferredChar = '1';
 
@@ -196,18 +197,18 @@ ES_Event_t RunTestHarnessService0(ES_Event_t ThisEvent)
       DB_printf("\rES_INIT received in Service %d\r\n", MyPriority);
     }
     break;
-    case CoinDetect:{
-//        DB_printf("coindetected posted in testharness \n");
-    }
-    break;
-    case GoalBeamBroken:{
-//        DB_printf("goalBeamBroken posted in testharness \n");
-    }
-    break;
-    case MissBeamBroken:{
-//        DB_printf("MissBeamBroken posted in testharness \n");
-    }
-    break;
+//     case CoinDetect:{
+// //        DB_printf("coindetected posted in testharness \n");
+//     }
+//     break;
+//     case GoalBeamBroken:{
+// //        DB_printf("goalBeamBroken posted in testharness \n");
+//     }
+//     break;
+//     case MissBeamBroken:{
+// //        DB_printf("MissBeamBroken posted in testharness \n");
+//     }
+//     break;
     case ES_TIMEOUT:   // re-start timer & announce
     {
       // ES_Timer_InitTimer(SERVICE0_TIMER, FIVE_SEC);
@@ -224,6 +225,21 @@ ES_Event_t RunTestHarnessService0(ES_Event_t ThisEvent)
     {
       DB_printf("ES_NEW_KEY received with -> %c <- in Service 0\r\n",
           (char)ThisEvent.EventParam);
+          if ('c'==ThisEvent.EventParam)
+          {
+            Event2Post.EventType = CoinDetect;
+            PostSoccerFSM(Event2Post);
+          }
+          if ('g'==ThisEvent.EventParam)
+          {
+            Event2Post.EventType = GoalBeamBroken;
+            PostSoccerFSM(Event2Post);
+          }
+          if ('m'==ThisEvent.EventParam)
+          {
+            Event2Post.EventType = MissBeamBroken;
+            PostSoccerFSM(Event2Post);
+          }
       // if ('d' == ThisEvent.EventParam)
       // {
       //   ThisEvent.EventParam = DeferredChar++;   //

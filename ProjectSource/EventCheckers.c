@@ -114,20 +114,20 @@ bool Check4Coin(void)
     ES_Event_t ThisEvent;
   //initialize current local variables
     bool ReturnVal = false;
-    bool CurrentCoinState= PORTBbits.RB8; //defining to read input of coin sensor on RB6, and maybe include FSM in this event checker
-    static bool LastCoinState = 1;
-    //check to see if different coin state (switch from low to high indicates the end of coin passing through)
-    if(CurrentCoinState != LastCoinState){
-        //if it is returning high coin just passed through
-        if(!CurrentCoinState){
-            ThisEvent.EventType= CoinDetect;
-            PostSoccerFSM(ThisEvent);
-            PostTestHarnessService0(ThisEvent);
-//            DB_printf("coin detected in event checker \n");
-        }
-        ReturnVal = true;
-    }     
-  LastCoinState= CurrentCoinState;
+//     bool CurrentCoinState= PORTBbits.RB8; //defining to read input of coin sensor on RB6, and maybe include FSM in this event checker
+//     static bool LastCoinState = 1;
+//     //check to see if different coin state (switch from low to high indicates the end of coin passing through)
+//     if(CurrentCoinState != LastCoinState){
+//         //if it is returning high coin just passed through
+//         if(!CurrentCoinState){
+//             ThisEvent.EventType= CoinDetect;
+//             PostSoccerFSM(ThisEvent);
+//             PostTestHarnessService0(ThisEvent);
+// //            DB_printf("coin detected in event checker \n");
+//         }
+//         ReturnVal = true;
+//     }     
+//   LastCoinState= CurrentCoinState;
   return ReturnVal;
 }
 
@@ -138,35 +138,35 @@ bool Check4Goal(void)
   //initialize current local variables
     bool ReturnVal = false;
     
-    //initializing goal sensor readings
-    bool CurrentGoalState= PORTBbits.RB9; //defining to read input of goal sensor on RB9, and maybe include FSM in this event checker
-    static bool LastGoalState = 1;
+  //   //initializing goal sensor readings
+  //   bool CurrentGoalState= PORTBbits.RB9; //defining to read input of goal sensor on RB9, and maybe include FSM in this event checker
+  //   static bool LastGoalState = 1;
 
     
-    //initializing miss sensor readings on pin RB13
-    bool CurrentMissState= PORTBbits.RB13;
-    static bool LastMissState = 1;
+  //   //initializing miss sensor readings on pin RB13
+  //   bool CurrentMissState= PORTBbits.RB13;
+  //   static bool LastMissState = 1;
     
-    //check to see if different goal state (switch from low to high indicates the end of ball passing through goal)
-    if(CurrentGoalState != LastGoalState){
-        //if it is returning high, ball just passed through
-        if(!CurrentGoalState){
-            ThisEvent.EventType= GoalBeamBroken;
-            PostSoccerFSM(ThisEvent);
-            PostTestHarnessService0(ThisEvent);
-        }
-        ReturnVal = true;
-    }
-    else if(CurrentMissState != LastMissState){
-        if(!CurrentMissState){
-            ThisEvent.EventType= MissBeamBroken;
-            PostSoccerFSM(ThisEvent);
-            PostTestHarnessService0(ThisEvent);
-        }
-        ReturnVal = true;
-    }
-  LastGoalState= CurrentGoalState;
-  LastMissState= CurrentMissState;
+  //   //check to see if different goal state (switch from low to high indicates the end of ball passing through goal)
+  //   if(CurrentGoalState != LastGoalState){
+  //       //if it is returning high, ball just passed through
+  //       if(!CurrentGoalState){
+  //           ThisEvent.EventType= GoalBeamBroken;
+  //           PostSoccerFSM(ThisEvent);
+  //           PostTestHarnessService0(ThisEvent);
+  //       }
+  //       ReturnVal = true;
+  //   }
+  //   else if(CurrentMissState != LastMissState){
+  //       if(!CurrentMissState){
+  //           ThisEvent.EventType= MissBeamBroken;
+  //           PostSoccerFSM(ThisEvent);
+  //           PostTestHarnessService0(ThisEvent);
+  //       }
+  //       ReturnVal = true;
+  //   }
+  // LastGoalState= CurrentGoalState;
+  // LastMissState= CurrentMissState;
   return ReturnVal;
 }
 
@@ -200,7 +200,7 @@ bool Check4Keystroke(void)
     ES_Event_t ThisEvent;
     ThisEvent.EventType = ES_NEW_KEY;
     ThisEvent.EventParam = GetNewKey();
-    ES_PostAll(ThisEvent);
+    PostTestHarnessService0(ThisEvent);
     return true;
   }
   return false;
