@@ -33,8 +33,7 @@
 #include "LEDFSM.h"
 /*----------------------------- Module Defines ----------------------------*/
 // these times assume a 10.000mS/tick timing
-#define FIFTEEN_SEC 15000 //this is similar to the test harness initializing of timer
-
+#define TimePerRound_ms 3000
 
 /*---------------------------- Module Functions ---------------------------*/
 /* prototypes for private functions for this machine.They should be functions
@@ -53,7 +52,7 @@ static uint8_t Player2Rounds = 0;
 //static uint8_t CurrentRound = 1;
 static uint8_t Player1Score = 0;
 static uint8_t Player2Score = 0;
-
+static uint8_t CurrentRound = 1;
 // with the introduction of Gen2, we need a module level Priority var as well
 static uint8_t MyPriority;
 
@@ -186,7 +185,7 @@ bool PostSoccerFSM(ES_Event_t ThisEvent)
 ****************************************************************************/
 ES_Event_t RunSoccerFSM(ES_Event_t ThisEvent)
 {
-    static uint8_t CurrentRound = 1;
+    
     
   ES_Event_t ReturnEvent;
   ReturnEvent.EventType = ES_NO_EVENT; // assume no errors
@@ -200,7 +199,13 @@ ES_Event_t RunSoccerFSM(ES_Event_t ThisEvent)
         LATBbits.LATB2 = 0; //turn off solenoid   
         DB_printf("solenoid turned off\n");
 
+      }else if (ThisEvent.EventParam == SHOTCLOCK_TIMER);
+      {
+        Event2Post.EventType=ShotButtonDown;
+        PostSoccerFSM(Event2Post);
+        DB_printf("timeout! shots fired! \n");
       }
+      
       
     }
     break;
@@ -248,19 +253,14 @@ ES_Event_t RunSoccerFSM(ES_Event_t ThisEvent)
             //LED lights up player 1 turn;
             LATBbits.LATB11 = 1; 
 //            DB_printf("Coin Detected State"); 
-
             LATBbits.LATB10 = 0; //turns off coin indicator LED
-            
-            
-            
+ 
             //allow goalie movement
             //***** DO THIS NEED SERVO SERVICE HERE************************************************
-            
-            //Set and Start Timer by initializing:
-            ES_Timer_InitTimer(SHOTCLOCK_TIMER, FIFTEEN_SEC);
-            
+ 
             NextState= Wait4Player1Shot; //setting next state as waiting for player 1 to shoot
             DB_printf("went to Wait for Player 1 Shot \n");
+            ES_Timer_InitTimer(SHOTCLOCK_TIMER, TimePerRound_ms);
         }
   
              
@@ -311,26 +311,23 @@ ES_Event_t RunSoccerFSM(ES_Event_t ThisEvent)
             //increase goal counter and player 1 round
             Player1Rounds++;
             Player1Score += 1;
-            
             // Ball returned for Player 1, transition to next state
-              
-            
              //LED lights up player 2 turn;
             LATBbits.LATB12 = 1; 
             NextState = Wait4Player2Shot;
             DB_printf("goal!! went to Player 2 Shot \n");
+            ES_Timer_InitTimer(SHOTCLOCK_TIMER, TimePerRound_ms);
             // NEED TO INITIALIZE TIMER HERE ***************************************************
         }
     
         else if (ThisEvent.EventType == MissBeamBroken){
             Player1Rounds++;
             // Ball returned for Player 1, transition to next state
-             
-            
              //LED lights up player 2 turn;
             LATBbits.LATB12 = 1; 
             NextState = Wait4Player2Shot;
             DB_printf("missed! went to Player 2 Shot \n");
+            ES_Timer_InitTimer(SHOTCLOCK_TIMER, TimePerRound_ms);
              // NEED TO INITIALIZE TIMER HERE ***************************************************
         }
     
@@ -375,11 +372,12 @@ ES_Event_t RunSoccerFSM(ES_Event_t ThisEvent)
             LATBbits.LATB11 = 1; //LED lights up player 1 turn;
            
             DB_printf("went to wait for player 1 shot, start round 2 \n");
+            ES_Timer_InitTimer(SHOTCLOCK_TIMER, TimePerRound_ms);
         } 
         else {
             // End game, display winner
 //            DisplayWinner();
-            NextState = EndGame;  // Transition to End Game
+            NextState = Wait4Coin;  // Transition to End Game
             DB_printf("End Game/n");
             
         }    
@@ -389,7 +387,7 @@ ES_Event_t RunSoccerFSM(ES_Event_t ThisEvent)
     
     
     default:
-      ;
+    break;
   } 
   CurrentState=NextState; // set the current state to be next state 
   // end switch on Current State
