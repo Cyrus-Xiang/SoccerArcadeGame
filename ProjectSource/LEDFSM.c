@@ -47,6 +47,11 @@
 static TemplateState_t CurrentState;
 static TemplateState_t PreviousState;
 
+// ADDED VARIABLES FOR SOCCER PROJECT
+static uint8_t Player1Score = 0;
+static uint8_t Player2Score = 0;
+static uint8_t TimerValue = 0;
+
 // with the introduction of Gen2, we need a module level Priority var as well
 static uint8_t MyPriority;
 static ES_Event_t DeferralQueue[3 + 1];
@@ -76,7 +81,13 @@ bool InitLEDFSM(uint8_t Priority)
 
   MyPriority = Priority;
   // put us into the Initial PseudoState
-  CurrentState = WaitForChar;
+//  CurrentState = WaitForChar;
+  // NEW ADDITIONS FOR SOCCER PROJ BELOW
+    CurrentState = InitLEDState;
+    TimerValue = 15;  // Start timer at 15??
+    Player1Score = 0;
+    Player2Score = 0;
+  
   // post the initial transition event
   ThisEvent.EventType = ES_INIT;
   
@@ -151,78 +162,135 @@ bool PostLEDFSM(ES_Event_t ThisEvent)
  Author
    J. Edward Carryer, 01/15/12, 15:23
 ****************************************************************************/
-ES_Event_t RunLEDFSM(ES_Event_t ThisEvent)
-{
-  ES_Event_t ReturnEvent;
-  ReturnEvent.EventType = ES_NO_EVENT; // assume no errors
 
-  switch (CurrentState)
-  {
-    case WaitForChar:        // If current state is initial Psedudo State
-    {
-      if (ThisEvent.EventType == ES_NEW_KEY)    // IF A NEW KEY IS PUSHED
-      {
-        // this is where you would put any actions associated with the
-        // transition from the initial pseudo-state into the actual
-        // initial state waiting for a character
-        
-          
-          //triggers scrolling by 4
-          DM_ScrollDisplayBuffer(4);
-          DM_AddChar2DisplayBuffer((char)ThisEvent.EventParam);
- 
-          //making a local event type
-            ES_Event_t LocalEvent;     
-            LocalEvent.EventType = ES_WAITBUFFER;
-            PostLEDFSM(LocalEvent);
-            CurrentState= WaitForBuffer;
-            
-      }
-      else if (ThisEvent.EventType == ES_WAITCHAR){
-          DM_ScrollDisplayBuffer(4);
-          DM_AddChar2DisplayBuffer(ThisEvent.EventParam);
-          
- 
-          //making a local event type
-            ES_Event_t LocalEvent;     
-            LocalEvent.EventType = ES_WAITBUFFER;
-            PostLEDFSM(LocalEvent);
-            CurrentState= WaitForBuffer;
-      }
-    }
-    break;
-
-    case WaitForBuffer:        // If current state is WaitForBuffer
-        // do nothing until trigger occurs
-        //when trigger happens: scrolling occurs, write to display, and updates display
-    {
-        if (ThisEvent.EventType == ES_NEW_KEY){
-            ES_DeferEvent(DeferralQueue, ThisEvent);
-        }
-        
-       if (ThisEvent.EventType == ES_WAITBUFFER) {
-          
-           if (false == DM_TakeDisplayUpdateStep()){
-              //making a local event type
-                ES_Event_t LocalEvent;     
-                LocalEvent.EventType = ES_WAITBUFFER;
-              // sending to next state:
-                //CurrentState = WaitForBuffer;
-                PostLEDFSM(LocalEvent);
-                }
-            else{
-            CurrentState = WaitForChar;
-            ES_RecallEvents(MyPriority, DeferralQueue);
+// ****************************COMMENTED OUT OLD LED FSM HERE
+//ES_Event_t RunLEDFSM(ES_Event_t ThisEvent)
+//{
+//  ES_Event_t ReturnEvent;
+//  ReturnEvent.EventType = ES_NO_EVENT; // assume no errors
+//
+//  switch (CurrentState)
+//  {
+//    case WaitForChar:        // If current state is initial Psedudo State
+//    {
+//      if (ThisEvent.EventType == ES_NEW_KEY)    // IF A NEW KEY IS PUSHED
+//      {
+//        // this is where you would put any actions associated with the
+//        // transition from the initial pseudo-state into the actual
+//        // initial state waiting for a character
+//        
+//          
+//          //triggers scrolling by 4
+//          DM_ScrollDisplayBuffer(4);
+//          DM_AddChar2DisplayBuffer((char)ThisEvent.EventParam);
+// 
+//          //making a local event type
+//            ES_Event_t LocalEvent;     
 //            LocalEvent.EventType = ES_WAITBUFFER;
-            }
-       }
-         
+//            PostLEDFSM(LocalEvent);
+//            CurrentState= WaitForBuffer;
+//            
+//      }
+//      else if (ThisEvent.EventType == ES_WAITCHAR){
+//          DM_ScrollDisplayBuffer(4);
+//          DM_AddChar2DisplayBuffer(ThisEvent.EventParam);
+//          
+// 
+//          //making a local event type
+//            ES_Event_t LocalEvent;     
+//            LocalEvent.EventType = ES_WAITBUFFER;
+//            PostLEDFSM(LocalEvent);
+//            CurrentState= WaitForBuffer;
+//      }
+//    }
+//    break;
+//
+//    case WaitForBuffer:        // If current state is WaitForBuffer
+//        // do nothing until trigger occurs
+//        //when trigger happens: scrolling occurs, write to display, and updates display
+//    {
+//        if (ThisEvent.EventType == ES_NEW_KEY){
+//            ES_DeferEvent(DeferralQueue, ThisEvent);
+//        }
+//        
+//       if (ThisEvent.EventType == ES_WAITBUFFER) {
+//          
+//           if (false == DM_TakeDisplayUpdateStep()){
+//              //making a local event type
+//                ES_Event_t LocalEvent;     
+//                LocalEvent.EventType = ES_WAITBUFFER;
+//              // sending to next state:
+//                //CurrentState = WaitForBuffer;
+//                PostLEDFSM(LocalEvent);
+//                }
+//            else{
+//            CurrentState = WaitForChar;
+//            ES_RecallEvents(MyPriority, DeferralQueue);
+////            LocalEvent.EventType = ES_WAITBUFFER;
+//            }
+//       }
+//         
+//    }
+//    break;
+//     default:
+//    break;                                  // end switch on Current State
+//  return ReturnEvent;
+//}
+//}
+
+// NEW RUN LED FSM BELOW (STATES ADDED TO HEADER )
+ES_Event_t RunLEDFSM(ES_Event_t ThisEvent) {
+    ES_Event_t ReturnEvent;
+    ReturnEvent.EventType = ES_NO_EVENT;  // Default return event
+
+    switch (CurrentState) {
+        case InitLEDState:
+            // Initialize the display (clear it) and set up timer/score display
+            // Clear the display at the start
+            // Initialize Player Scores and Timer
+            DM_DisplayScore(Player1Score, 2);  // Display Player 1 score on module 2
+            DM_DisplayScore(Player2Score, 3);  // Display Player 2 score on module 3
+            DM_DisplayTimer(TimerValue);  // Display timer on module 1
+            CurrentState = DisplayScoreState;  // Transition to Display Score State
+            break;
+
+        case DisplayScoreState:
+            // This state will be responsible for updating scores and timer as the game progresses
+            // If scores are updated, refresh the display
+            DM_DisplayScore(Player1Score, 2);  // Update Player 1 score on module 2
+            DM_DisplayScore(Player2Score, 3);  // Update Player 2 score on module 3
+            DM_DisplayTimer(TimerValue);  // Update Timer display on module 1
+            break;
+
+        case UpdateTimerState:
+            // This state is responsible for updating the timer value
+            TimerValue++;  // Increment timer (this logic could be tied to a game clock)
+            DM_DisplayTimer(TimerValue);  // Update the timer display
+            break;
+
+        default:
+            break;
     }
-    break;
-     default:
-    break;                                  // end switch on Current State
-  return ReturnEvent;
+
+    return ReturnEvent;
 }
+
+// Function to update the player scores (called when score changes)
+void UpdatePlayerScore(uint8_t Player, uint8_t Score) {
+    if (Player == 1) {
+        Player1Score = Score;
+    } else if (Player == 2) {
+        Player2Score = Score;
+    }
+    // Transition to update the display with the new scores
+    CurrentState = DisplayScoreState;  // Transition to Display Score State
+}
+
+// Function to update the timer value
+void UpdateTimer(uint8_t NewTime) {
+    TimerValue = NewTime;
+    // Transition to update the display with the new timer
+    CurrentState = UpdateTimerState;  // Transition to Update Timer State
 }
 
 /****************************************************************************

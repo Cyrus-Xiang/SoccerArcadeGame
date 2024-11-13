@@ -18,7 +18,10 @@
 typedef enum
 {
     WaitForChar,
-    WaitForBuffer
+    WaitForBuffer,
+    InitLEDState,
+    DisplayScoreState,
+    UpdateTimerState
 }TemplateState_t;
 
 // Public Function Prototypes
