@@ -271,7 +271,9 @@ typedef enum
           ES_WAITBUFFER,
           ES_WAITCHAR,
   DBButtonDown,
-  Pot_Val_Update
+  Pot_Val_Update,
+  EnableServo,
+  DisableServo
           
 }ES_EventType_t;
 

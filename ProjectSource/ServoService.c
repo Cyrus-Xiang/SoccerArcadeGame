@@ -52,6 +52,7 @@
   static uint16_t Pot_reading;
   static uint16_t PW_mid_us;
   static uint16_t PW_range_us;
+  static bool moveAllowed = false;
 
 /*------------------------------ Module Code ------------------------------*/
 /****************************************************************************
@@ -160,37 +161,26 @@ ES_Event_t RunServoService(ES_Event_t ThisEvent)
    *******************************************/
   switch (ThisEvent.EventType)
   {
+  case EnableServo:{
+    moveAllowed = true;
+  }
+  break;
+  case DisableServo:{
+    moveAllowed = false;
+  }
+  break;
   case Pot_Val_Update:{
     // DB_printf("Pot_Val_update event received in servo service n");
     // DB_printf(" %u \n",ThisEvent.EventParam);
     Pot_reading = ThisEvent.EventParam;
     PulseWidth =(uint16_t) ((double)(Pot_reading/1024.0)*PW_range_us + low_PW_us)*ticks_per_us;
-    PWMOperate_SetPulseWidthOnChannel(PulseWidth, 1);
+    if (moveAllowed)
+    {
+      PWMOperate_SetPulseWidthOnChannel(PulseWidth, 1);
+    }
     // DB_printf("new pulse width is %u \n", PulseWidth);
   }
   break;
-  case ES_NEW_KEY:   // announce
-    {
-      // DB_printf("ES_NEW_KEY received with -> %c <- in servo service\r\n",
-      //     (char)ThisEvent.EventParam);
-      // if ('d' == ThisEvent.EventParam)
-      // {
-      //   ADC_MultiRead(Curr_AD_Val);//(10 bits, 0-1023 corresponding to 0-3.3V
-      //   diff_AD = Curr_AD_Val[0] - Last_AD_Val[0];
-      //   diff_AD = abs(diff_AD);
-      //   DB_printf("potentiometer val = %u \n",Curr_AD_Val[0]);
-      //   DB_printf("diff from last read = %u \n", (uint16_t)diff_AD);
-      //   Last_AD_Val[0] = Curr_AD_Val[0];
-        
-      // }
-      
-    }
-    break;
-    // case DBButtonDown:{
-    // DB_printf("cap button pressed \n");
-    // PWMOperate_SetDutyOnChannel( PW_mid_us*ticks_per_us, 2); 
-    // }
-    // break;
   default:
     break;
   }

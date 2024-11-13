@@ -33,7 +33,7 @@
 #include "LEDFSM.h"
 /*----------------------------- Module Defines ----------------------------*/
 // these times assume a 10.000mS/tick timing
-#define TimePerRound_ms 3000
+#define TimePerRound_ms 10000
 
 /*---------------------------- Module Functions ---------------------------*/
 /* prototypes for private functions for this machine.They should be functions
@@ -261,6 +261,8 @@ ES_Event_t RunSoccerFSM(ES_Event_t ThisEvent)
             NextState= Wait4Player1Shot; //setting next state as waiting for player 1 to shoot
             DB_printf("went to Wait for Player 1 Shot \n");
             ES_Timer_InitTimer(SHOTCLOCK_TIMER, TimePerRound_ms);
+            Event2Post.EventType = EnableServo;
+            PostServoService(Event2Post);
         }
   
              
@@ -379,6 +381,8 @@ ES_Event_t RunSoccerFSM(ES_Event_t ThisEvent)
 //            DisplayWinner();
             NextState = Wait4Coin;  // Transition to End Game
             DB_printf("End Game/n");
+            Event2Post.EventType = DisableServo;
+            PostServoService(Event2Post);
             
         }    
       //do this
