@@ -154,11 +154,13 @@ Example
 ****************************************************************************/
 bool DM_QueryRowData( uint8_t RowToQuery, uint32_t * pReturnValue);
 
-void DM_NewAddChar2Buffer(unsigned char Char2Display, uint8_t Module);
+bool DM_AddChar2Buffer_Module(unsigned char Char2Display, uint8_t Module);
 
 
-void DM_DisplayScore(uint8_t Score, uint8_t Module) ;
-void DM_DisplayTimer(uint8_t TimerValue) ;
+bool DM_AddNum2Buffer_Module(uint8_t Score, uint8_t Module) ;
+
+bool DM_ScrollModuleBuffer(uint8_t NumCols2Scroll, uint8_t WhichModule);
+bool DM_AddCharArray2Buffer_Module(char str[], uint8_t WhichModule);
 
 #endif	/* DM_DISPLAY_H */
 

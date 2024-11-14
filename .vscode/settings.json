@@ -1,5 +1,7 @@
 {
     "files.associations": {
-        "dm_display.h": "c"
+        "dm_display.h": "c",
+        "dbprintf.h": "c",
+        "terminal.h": "c"
     }
 }

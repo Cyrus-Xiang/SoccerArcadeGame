@@ -307,49 +307,69 @@ bool DM_QueryRowData(uint8_t RowToQuery, uint32_t *pReturnValue)
 }
 
 // NEW FUNCTIONS FOR SOCCER PROJECT BELOW (NewAddChar2Buffer makes sure we are using the 3 modules)
-void DM_NewAddChar2Buffer(unsigned char Char2Display, uint8_t Module)
+bool DM_AddChar2Buffer_Module(unsigned char Char2Display, uint8_t WhichModule)
 {
-    uint8_t WhichRow;
+    if (WhichModule > 3)
+    {
+      return false;
+    }
     
+    uint8_t WhichRow;
     // Loop through every row in the character font (5 rows for each character)
     for (WhichRow = 0; WhichRow < NUM_ROWS_IN_FONT; WhichRow++) {
         // Get the byte representation of the font for this row
         uint8_t FontLine = getFontLine(Char2Display, WhichRow);
-        
         // Based on the module number, we write the character to the appropriate display buffer
-        // Module 1, Module 2, or Module 3
-        if (Module == 1) {
-            DM_Display[WhichRow].ByBytes[0] = FontLine;  // Display in module 1
-        } else if (Module == 2) {
-            DM_Display[WhichRow].ByBytes[1] = FontLine;  // Display in module 2
-        } else if (Module == 3) {
-            DM_Display[WhichRow].ByBytes[2] = FontLine;  // Display in module 3
-        }
+        DM_Display[WhichRow].ByBytes[WhichModule] |= FontLine;  // Display in module 1
     }
+    return true;
+}
+//this function can only take into an char array of size less than 2
+bool DM_AddCharArray2Buffer_Module(char strArr[], uint8_t WhichModule){
+  uint8_t ArrSize = sizeof(strArr)/sizeof(strArr[0]);
+  if (WhichModule > 3 || ArrSize >2 ){//check if inputs are legal
+      return false;
+    }
+  DM_ScrollModuleBuffer(9, WhichModule);//clear the module buffer
+  DM_AddChar2Buffer_Module(strArr[0],WhichModule);//display the first digit no matter what
+  if (ArrSize > 1){
+    DM_ScrollModuleBuffer(4, Module);//scroll the first digit before adding the second
+    DM_AddChar2Buffer_Module(NumStr[1],Module);
+  }
+    return true;
 }
 
+bool DM_AddNum2Buffer_Module(uint8_t Num, uint8_t Module) {
+  if (Module > 3){
+      return false;
+    }
+  char NumStr[2];
+  sprintf(NumStr, "%d", Num); 
 
-void DM_DisplayScore(uint8_t Score, uint8_t Module) {
-    char ScoreStr[3];  // Store score as string, max 2 digits + null terminator
-    snprintf(ScoreStr, sizeof(ScoreStr), "%02d", Score);  // Convert to 2-digit format
     
-    // Display each character (digit) of the score on the specified module
-    for (int i = 0; i < 2; i++) {
-        char c = ScoreStr[i];
-        DM_NewAddChar2Buffer(c, Module);  // Sends the character to the given module
+    
+   
+    
+    return true;
+}
+bool DM_ScrollModuleBuffer(uint8_t NumCols2Scroll, uint8_t WhichModule) // scroll to the right
+{
+  if (WhichModule > 3){
+      return false;
     }
+  uint8_t WhichRow;
+  // shift one column at a time
+  for (size_t i = 0; i < NumCols2Scroll; i++)
+  {
+    // Loop through all rows
+    for (int WhichRow = 0; WhichRow < NUM_ROWS; WhichRow++)
+    {
+      DM_Display[WhichRow].ByBytes[WhichModule] = DM_Display[WhichRow].ByBytes[WhichModule] << 1;
+    }
+  }
+  return true;
 }
 
-void DM_DisplayTimer(uint8_t TimerValue) {
-    char TimerStr[3];  // Store timer value as string, max 2 digits + null terminator
-    snprintf(TimerStr, sizeof(TimerStr), "%02d", TimerValue);  // Convert to 2-digit format
-    
-    // Display each character (digit) of the timer on module 1
-    for (int i = 0; i < 2; i++) {
-        char c = TimerStr[i];
-        DM_NewAddChar2Buffer(c, 1);  // Sends the character to module 1 (timer display)
-    }
-}
 
 //*********************************
 // private functions

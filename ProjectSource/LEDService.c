@@ -43,7 +43,7 @@ static uint8_t MyPriority;
 #define HALF_SEC (ONE_SEC / 2)
 #define TWO_SEC (ONE_SEC * 2)
 #define FIVE_SEC (ONE_SEC * 5)
-static const char LongMsg[] = "Deathless Aphrodite of the spangled mind, child of Zeus, who twists lures, I beg you do not break with hard pains,";
+static const char LongMsg[] = "Please Insert Coin";
 // O lady, my heart
 //  but come here if ever before
 // you caught my voice far off
@@ -57,9 +57,10 @@ static const char LongMsg[] = "Deathless Aphrodite of the spangled mind, child o
 static const size_t MsgLength = sizeof(LongMsg) / sizeof(LongMsg[0]);
 static uint8_t msg_ind = 0;
 static LED_MatrixState_t CurrentState = LongTextMode;
-static uint8_t Player1Score = 0;
-static uint8_t Player2Score = 0;
-static uint8_t TimerValue = 0;
+static uint16_t Player1Score = 0;
+static uint16_t Player2Score = 0;
+static uint8_t TimeLeft; //count down time for solenoid shot
+#define TimePerRound_s 15
 /*------------------------------ Module Code ------------------------------*/
 /****************************************************************************
  Function
@@ -102,7 +103,7 @@ bool InitLEDService(uint8_t Priority)
   while (!SPIOperate_HasSS1_Risen()){} // needed for the first two messages to be sperated
   //Setup LED matrix
 while ( false == DM_TakeInitDisplayStep() ){}
-DM_AddChar2DisplayBuffer('I');
+// DM_AddChar2DisplayBuffer('I');//a initialization message
 while (false == DM_TakeDisplayUpdateStep()){  }
   ES_Event_t ThisEvent;
 
@@ -171,61 +172,121 @@ ES_Event_t RunLEDService(ES_Event_t ThisEvent)
   ES_Event_t Event2post;
   switch (CurrentState) {
     case LongTextMode:{
-      if (ThisEvent.EventType == EnterWaitLED)
+      switch (ThisEvent.EventType)
       {
+      case EnterScoreLED:{
         NextState = ScoreMode;
+        ES_Timer_StopTimer(LED_Timer);
         DM_ClearDisplayBuffer();
+        //reset the timer and update display buffer
+        TimeLeft = TimePerRound_s;
+        DM_AddNum2Buffer_Module(TimeLeft,0);
+        //clear players scores and update display buffer
+        Player1Score = 0; 
+        Player2Score = 0;
+        DM_AddNum2Buffer_Module(Player1Score,3);
+        DM_AddNum2Buffer_Module(Player2Score,1);
         Event2post.EventType = ES_LED_Disp_Need_Update;
         PostLEDService(Event2post);
       }
-      
+      break;
+      case ES_TIMEOUT:{
+        if (ThisEvent.EventParam == LED_Timer)
+        {
+          // DB_printf("LED Timer timed out \n");
+          ES_Timer_InitTimer(LED_Timer, 500);
+          ES_Event_t event2post;
+          event2post.EventType = ES_NEW_KEY;
+          if (msg_ind < MsgLength)
+          {
+            event2post.EventParam = LongMsg[msg_ind];
+            msg_ind++;
+          }else{ 
+            event2post.EventParam = LongMsg[0];
+            msg_ind = 1;
+          }   
+          ES_PostToService(MyPriority, event2post);
+        }
+      }
+      break;
+      case ES_NEW_KEY:   
+      {
+        DM_ScrollDisplayBuffer(4);
+        DM_AddChar2DisplayBuffer((char)ThisEvent.EventParam);
+        //DB_printf("updating the LED display \n");
+        ES_Event_t event2post;
+        event2post.EventType = ES_LED_Disp_Need_Update;
+        ES_PostToService(MyPriority, event2post);
+      }
+      break;
+      default:
+      break;
+      }   
     }
+    break;
+    case ScoreMode:{
+        switch (ThisEvent.EventType)
+        {
+        case EnterWaitLED:{
+          NextState = LongTextMode;
+          DM_ClearDisplayBuffer();
+          ES_Timer_InitTimer(LED_Timer,500);
+          msg_ind = 0;
+          Event2post.EventType = ES_LED_Disp_Need_Update;
+          PostLEDService(Event2post);
+        }
+        break;
+        case ES_TIMEOUT:{
+          if (ThisEvent.EventParam == LED_Timer4Player)
+          {
+            if (TimeLeft > 0)
+            {
+              DM_AddNum2Buffer_Module(TimeLeft,0);
+              Event2post.EventType = ES_LED_Disp_Need_Update;
+              PostLEDService(Event2post);
+              TimeLeft --;
+              ES_Timer_InitTimer(LED_Timer4Player,1000);
+            }else // meaning there is no time left
+            {
+              ES_Timer_StopTimer(LED_Timer4Player);
+            } 
+          }
+        }
+        break;
+        case BallShot:{
+          TimeLeft = 0;
+        }
+        break;
+        case LED_P1ScoreUpdate:{
+          Player1Score = ThisEvent.EventParam;
+          DM_AddNum2Buffer_Module(Player1Score,3);
+          Event2post.EventType = ES_LED_Disp_Need_Update;
+          PostLEDService(Event2post);
+        }
+        break;
+        case LED_P2ScoreUpdate:{
+          Player2Score = ThisEvent.EventParam;
+          DM_AddNum2Buffer_Module(Player2Score,1);
+          Event2post.EventType = ES_LED_Disp_Need_Update;
+          PostLEDService(Event2post);
+        }
+        break;
+        default:
+          break;
+        }
+    }
+    break;
+    default:
     break;
   }
   CurrentState = NextState;
-  
 
+  //below is independent of the FSM and doing its own thing
+  //the LED matrix's row by row update runs in parallel in the background
   switch (ThisEvent.EventType)
   {
     case ES_INIT:
     {
-      
-    }break;
-    case ES_TIMEOUT:{
-      if (ThisEvent.EventParam == LED_Timer)
-      {
-        DB_printf("LED Timer timed out \n");
-        ES_Timer_InitTimer(LED_Timer, 1000);
-        ES_Event_t event2post;
-        event2post.EventType = ES_NEW_KEY;
-        if (msg_ind < MsgLength)
-        {
-          event2post.EventParam = LongMsg[msg_ind];
-          msg_ind++;
-        }else{ 
-          event2post.EventParam = LongMsg[0];
-          msg_ind = 1;
-      }
-      ES_PostToService(MyPriority, event2post);
-      }
-      
-    }
-    break;
-   
-    case ES_NEW_KEY:   // announce
-    {
-      DM_ScrollDisplayBuffer(4);
-      DM_AddChar2DisplayBuffer((char)ThisEvent.EventParam);
-      //DB_printf("updating the LED display \n");
-      ES_Event_t event2post;
-      event2post.EventType = ES_LED_Disp_Need_Update;
-      ES_PostToService(MyPriority, event2post);
-      
-      // while (false == DM_TakeDisplayUpdateStep()){  } //not allowed
-      // if ('a' == ThisEvent.EventParam)
-      // {
-      //   DB_printf("aaaaaaaaaaaaa for test from LED Service event \n");
-      // }
       
     }break;
     case ES_LED_Disp_Need_Update:
@@ -241,7 +302,7 @@ ES_Event_t RunLEDService(ES_Event_t ThisEvent)
     default:
     break;
   
-}
+  }
   return ReturnEvent;
 }
 

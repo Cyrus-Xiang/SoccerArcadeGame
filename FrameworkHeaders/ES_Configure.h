@@ -278,6 +278,8 @@ typedef enum
   EnterScoreLED,
   EnterWaitLED,
   BallShot,
+  LED_P1ScoreUpdate,
+  LED_P2ScoreUpdate
           
 }ES_EventType_t;
 
@@ -335,7 +337,7 @@ typedef enum
 #define TIMER8_RESP_FUNC TIMER_UNUSED
 #define TIMER9_RESP_FUNC TIMER_UNUSED
 #define TIMER10_RESP_FUNC TIMER_UNUSED
-#define TIMER11_RESP_FUNC TIMER_UNUSED
+#define TIMER11_RESP_FUNC PostLEDService
 #define TIMER12_RESP_FUNC PostLEDService
 #define TIMER13_RESP_FUNC PostSoccerFSM
 #define TIMER14_RESP_FUNC PostSoccerFSM
@@ -351,6 +353,7 @@ typedef enum
 #define SERVICE0_TIMER 15
 #define SHOTCLOCK_TIMER 14
 #define Solenoid_shutdown_timer 13
-#define LED_Timer 12
+#define LED_Timer 12 // this timer is for updating scrolling text like in lab3
+#define LED_Timer4Player 11 // this timer is for the count down time of solenoid shot
 
 #endif /* ES_CONFIGURE_H */
