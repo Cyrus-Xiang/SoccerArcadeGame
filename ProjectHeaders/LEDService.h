@@ -12,6 +12,12 @@
 #include "DM_Display.h"
 #include "PIC32_SPI_HAL.h"
 
+// State definitions for use with the query function
+typedef enum
+{
+    LongTextMode,
+    ScoreMode,
+}LED_MatrixState_t;
 // Public Function Prototypes
 
 bool InitLEDService(uint8_t Priority);

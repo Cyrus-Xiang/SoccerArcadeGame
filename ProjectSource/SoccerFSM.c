@@ -260,6 +260,7 @@ ES_Event_t RunSoccerFSM(ES_Event_t ThisEvent)
  
             //allow goalie movement
             ES_Timer_InitTimer(SHOTCLOCK_TIMER, TimePerRound_ms);
+            //ES_Timer_InitTimer(LED_Timer,1000);
             Event2Post.EventType = EnableServo;
             PostServoService(Event2Post);
 

@@ -275,6 +275,9 @@ typedef enum
   EnableServo,
   DisableServo,
   ES_LED_Disp_Need_Update,
+  EnterScoreLED,
+  EnterWaitLED,
+  BallShot,
           
 }ES_EventType_t;
 

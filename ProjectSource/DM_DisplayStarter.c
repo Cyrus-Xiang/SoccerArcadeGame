@@ -306,6 +306,51 @@ bool DM_QueryRowData(uint8_t RowToQuery, uint32_t *pReturnValue)
   // legal row, so grab the data from the buffer
 }
 
+// NEW FUNCTIONS FOR SOCCER PROJECT BELOW (NewAddChar2Buffer makes sure we are using the 3 modules)
+void DM_NewAddChar2Buffer(unsigned char Char2Display, uint8_t Module)
+{
+    uint8_t WhichRow;
+    
+    // Loop through every row in the character font (5 rows for each character)
+    for (WhichRow = 0; WhichRow < NUM_ROWS_IN_FONT; WhichRow++) {
+        // Get the byte representation of the font for this row
+        uint8_t FontLine = getFontLine(Char2Display, WhichRow);
+        
+        // Based on the module number, we write the character to the appropriate display buffer
+        // Module 1, Module 2, or Module 3
+        if (Module == 1) {
+            DM_Display[WhichRow].ByBytes[0] = FontLine;  // Display in module 1
+        } else if (Module == 2) {
+            DM_Display[WhichRow].ByBytes[1] = FontLine;  // Display in module 2
+        } else if (Module == 3) {
+            DM_Display[WhichRow].ByBytes[2] = FontLine;  // Display in module 3
+        }
+    }
+}
+
+
+void DM_DisplayScore(uint8_t Score, uint8_t Module) {
+    char ScoreStr[3];  // Store score as string, max 2 digits + null terminator
+    snprintf(ScoreStr, sizeof(ScoreStr), "%02d", Score);  // Convert to 2-digit format
+    
+    // Display each character (digit) of the score on the specified module
+    for (int i = 0; i < 2; i++) {
+        char c = ScoreStr[i];
+        DM_NewAddChar2Buffer(c, Module);  // Sends the character to the given module
+    }
+}
+
+void DM_DisplayTimer(uint8_t TimerValue) {
+    char TimerStr[3];  // Store timer value as string, max 2 digits + null terminator
+    snprintf(TimerStr, sizeof(TimerStr), "%02d", TimerValue);  // Convert to 2-digit format
+    
+    // Display each character (digit) of the timer on module 1
+    for (int i = 0; i < 2; i++) {
+        char c = TimerStr[i];
+        DM_NewAddChar2Buffer(c, 1);  // Sends the character to module 1 (timer display)
+    }
+}
+
 //*********************************
 // private functions
 //*********************************
@@ -353,65 +398,3 @@ static void sendRow(uint8_t RowNum, DM_Row_t RowData)
        BitReverseTable256[(RowData.ByBytes[index])]));
 }
 
-// int main(void)
-// {
-//   // Setup using SPI HAL
-
-//   SPISetup_DisableSPI(SPI_SPI1); // Turn off SPI
-//   //
-//   //  //Config everything
-//   SPISetup_BasicConfig(SPI_SPI1);
-//   SPISetup_SetLeader(SPI_SPI1, SPI_SMP_MID);
-//   SPISetup_MapSSOutput(SPI_SPI1, SPI_RPA0);
-//   SPISetup_MapSDOutput(SPI_SPI1, SPI_RPA1);
-//   SPISetup_SetClockIdleState(SPI_SPI1, SPI_CLK_HI);
-//   SPISetup_SetActiveEdge(SPI_SPI1, SPI_SECOND_EDGE);
-//   SPISetEnhancedBuffer(SPI_SPI1, true);
-//   SPISetup_SetXferWidth(SPI_SPI1, SPI_16BIT);
-//   SPISetup_SetBitTime(SPI_SPI1, 1e9 / 100e3);
-//   //  //Turn SPI back on
-//   SPISetup_EnableSPI(SPI_SPI1);
-
-//   while (!SPIOperate_HasSS1_Risen())
-//   {
-//   } // needed for the first two messages to be sperated
-
-//   // Initialization of the LED Matrix
-//   while (false == DM_TakeInitDisplayStep())
-//   {
-//   }
-
-//   // Sending the scrolling dot
-// uint32_t data = 0x00000001; //first data point (upper right corner)
-// uint8_t curr_row = 0; //the row that the LED pixel that is lit is on
-// uint8_t curr_col = 0;
-// for (uint32_t i = 0; i < 9e4; i++){}
-// while (1)
-// {
-//     if (curr_col == 31) // the dot is currently on the last col
-//     {
-//         curr_col = 0;
-//         data = 0x00000001;
-//         DM_PutDataIntoBufferRow(0x00000000, curr_row);
-//         curr_row ++;
-        
-//     }else{
-//         data = data << 1;
-//         curr_col ++;
-//     }
-
-//     if (curr_row > NUM_ROWS - 1) //meaning curr_row is equal to 8, which is out of bound
-//     {
-//         curr_row = 0;
-//     }
-//     DM_PutDataIntoBufferRow(data, curr_row);
-//     while (false == DM_TakeDisplayUpdateStep()){  }
-//     for (uint32_t i = 0; i < 1e4; i++){}
-    
-    
-// }
-
-// //  for (uint32_t i = 0; i < 2e5; i++)
-// //  {
-// //  }
-// }

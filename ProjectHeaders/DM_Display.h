@@ -154,5 +154,11 @@ Example
 ****************************************************************************/
 bool DM_QueryRowData( uint8_t RowToQuery, uint32_t * pReturnValue);
 
+void DM_NewAddChar2Buffer(unsigned char Char2Display, uint8_t Module);
+
+
+void DM_DisplayScore(uint8_t Score, uint8_t Module) ;
+void DM_DisplayTimer(uint8_t TimerValue) ;
+
 #endif	/* DM_DISPLAY_H */
 

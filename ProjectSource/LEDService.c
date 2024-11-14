@@ -26,6 +26,9 @@
 #include "dbprintf.h"
 #include "ES_Port.h"
 #include "terminal.h"
+#include "DM_Display.h"
+#include "PIC32_SPI_HAL.h"
+#include "FontStuff.h"
 /*----------------------------- Module Defines ----------------------------*/
 
 /*---------------------------- Module Functions ---------------------------*/
@@ -53,6 +56,10 @@ static const char LongMsg[] = "Deathless Aphrodite of the spangled mind, child o
 // and asked what (now again) I have suffered and why(now again) I am calling out";
 static const size_t MsgLength = sizeof(LongMsg) / sizeof(LongMsg[0]);
 static uint8_t msg_ind = 0;
+static LED_MatrixState_t CurrentState = LongTextMode;
+static uint8_t Player1Score = 0;
+static uint8_t Player2Score = 0;
+static uint8_t TimerValue = 0;
 /*------------------------------ Module Code ------------------------------*/
 /****************************************************************************
  Function
@@ -95,7 +102,7 @@ bool InitLEDService(uint8_t Priority)
   while (!SPIOperate_HasSS1_Risen()){} // needed for the first two messages to be sperated
   //Setup LED matrix
 while ( false == DM_TakeInitDisplayStep() ){}
-DM_AddChar2DisplayBuffer('A');
+DM_AddChar2DisplayBuffer('I');
 while (false == DM_TakeDisplayUpdateStep()){  }
   ES_Event_t ThisEvent;
 
@@ -160,16 +167,28 @@ ES_Event_t RunLEDService(ES_Event_t ThisEvent)
 {
   ES_Event_t ReturnEvent;
   ReturnEvent.EventType = ES_NO_EVENT; // assume no errors
-  /********************************************
-   in here you write your service code
-   *******************************************/
+ LED_MatrixState_t NextState = CurrentState;
+  ES_Event_t Event2post;
+  switch (CurrentState) {
+    case LongTextMode:{
+      if (ThisEvent.EventType == EnterWaitLED)
+      {
+        NextState = ScoreMode;
+        DM_ClearDisplayBuffer();
+        Event2post.EventType = ES_LED_Disp_Need_Update;
+        PostLEDService(Event2post);
+      }
+      
+    }
+    break;
+  }
+  CurrentState = NextState;
+  
+
   switch (ThisEvent.EventType)
   {
     case ES_INIT:
     {
-      
-      ES_Timer_InitTimer(LED_Timer, 1000);
-
       
     }break;
     case ES_TIMEOUT:{
