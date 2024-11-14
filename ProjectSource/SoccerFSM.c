@@ -267,7 +267,7 @@ ES_Event_t RunSoccerFSM(ES_Event_t ThisEvent)
             //make LED display scores and count downs
             Event2Post.EventType = EnterScoreLED;
             PostLEDService(Event2Post);
-            ES_Timer_InitTimer(LED_Timer4Player,1000);
+            
             NextState= Wait4Player1Shot; //setting next state as waiting for player 1 to shoot
             DB_printf("went to Wait for Player 1 Shot \n");
             
@@ -334,7 +334,9 @@ ES_Event_t RunSoccerFSM(ES_Event_t ThisEvent)
             NextState = Wait4Player2Shot;
             DB_printf("goal!! went to Player 2 Shot \n");
             ES_Timer_InitTimer(SHOTCLOCK_TIMER, TimePerRound_ms);
-          
+          //reinitialize LED countdown
+            Event2Post.EventType = LED_RestartTimer;
+            PostLEDService(Event2Post);
             
         }
     
@@ -394,6 +396,9 @@ ES_Event_t RunSoccerFSM(ES_Event_t ThisEvent)
            
             DB_printf("went to wait for player 1 shot, start round 2 \n");
             ES_Timer_InitTimer(SHOTCLOCK_TIMER, TimePerRound_ms);
+            //reinitialize LED countdown
+            Event2Post.EventType = LED_RestartTimer;
+            PostLEDService(Event2Post);
         } 
         else {
             // End game, display winner
@@ -402,7 +407,7 @@ ES_Event_t RunSoccerFSM(ES_Event_t ThisEvent)
             DB_printf("End Game/n");
             Event2Post.EventType = DisableServo;
             PostServoService(Event2Post);
-            Event2Post.EventType = EnterWaitLED;
+            Event2Post.EventType = DisplayWinner;
             PostLEDService(Event2Post);
             
         }    

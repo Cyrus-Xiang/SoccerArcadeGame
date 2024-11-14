@@ -179,8 +179,9 @@ ES_Event_t RunLEDService(ES_Event_t ThisEvent)
         ES_Timer_StopTimer(LED_Timer);
         DM_ClearDisplayBuffer();
         //reset the timer and update display buffer
-        TimeLeft = TimePerRound_s;
+        TimeLeft = TimePerRound_s-1;
         DM_AddNum2Buffer_Module(TimeLeft,0);
+        ES_Timer_InitTimer(LED_Timer4Player,1000);
         //clear players scores and update display buffer
         Player1Score = 0; 
         Player2Score = 0;
@@ -227,7 +228,7 @@ ES_Event_t RunLEDService(ES_Event_t ThisEvent)
     case ScoreMode:{
         switch (ThisEvent.EventType)
         {
-        case EnterWaitLED:{
+        case DisplayWinner:{
           NextState = LongTextMode;
           DM_ClearDisplayBuffer();
           ES_Timer_InitTimer(LED_Timer,500);
@@ -239,7 +240,7 @@ ES_Event_t RunLEDService(ES_Event_t ThisEvent)
         case ES_TIMEOUT:{
           if (ThisEvent.EventParam == LED_Timer4Player)
           {
-            if (TimeLeft > 0)
+            if (TimeLeft >= 0)
             {
               DM_AddNum2Buffer_Module(TimeLeft,0);
               Event2post.EventType = ES_LED_Disp_Need_Update;
@@ -255,6 +256,11 @@ ES_Event_t RunLEDService(ES_Event_t ThisEvent)
         break;
         case BallShot:{
           TimeLeft = 0;
+        }
+        break;
+        case LED_RestartTimer:{
+          TimeLeft = TimePerRound_s-1;
+          ES_Timer_InitTimer(LED_Timer4Player,1000);
         }
         break;
         case LED_P1ScoreUpdate:{

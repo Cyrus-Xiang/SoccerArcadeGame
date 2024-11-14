@@ -279,7 +279,9 @@ typedef enum
   EnterWaitLED,
   BallShot,
   LED_P1ScoreUpdate,
-  LED_P2ScoreUpdate
+  LED_P2ScoreUpdate,
+  DisplayWinner,
+  LED_RestartTimer
           
 }ES_EventType_t;
 
