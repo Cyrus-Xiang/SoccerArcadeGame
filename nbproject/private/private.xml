@@ -4,8 +4,15 @@
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
         <group>
             <file>file:/U:/cyrusx/218proj_team/ProjectSource/SoccerFSM.c</file>
+            <file>file:/U:/cyrusx/218proj_team/ProjectSource/LEDFSM.c</file>
+            <file>file:/U:/cyrusx/218proj_team/FrameworkSource/ES_Timers.c</file>
+            <file>file:/U:/cyrusx/218proj_team/ProjectHeaders/LEDService.h</file>
             <file>file:/U:/cyrusx/218proj_team/ProjectSource/DM_DisplayStarter.c</file>
+            <file>file:/U:/cyrusx/218proj_team/ProjectSource/EventCheckers.c</file>
+            <file>file:/U:/cyrusx/218proj_team/FrameworkHeaders/ES_Configure.h</file>
+            <file>file:/U:/cyrusx/218proj_team/FrameworkHeaders/ES_ServiceHeaders.h</file>
             <file>file:/U:/cyrusx/218proj_team/ProjectSource/TestHarnessService0.c</file>
+            <file>file:/U:/cyrusx/218proj_team/ProjectSource/LEDService.c</file>
         </group>
     </open-files>
 </project-private>
