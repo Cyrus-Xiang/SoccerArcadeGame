@@ -51,7 +51,7 @@ bool DM_TakeInitDisplayStep( void );
   Clears the contents of the display buffer.
    
 Example
-   DM_ClearDisplayBuffer();
+   BDM_ClearDisplayBuffer();
 ****************************************************************************/
 void DM_ClearDisplayBuffer( void );
 
@@ -116,7 +116,7 @@ void DM_AddChar2DisplayBuffer( unsigned char Char2Display);
 
 /****************************************************************************
  Function
-  DM_PutDataIntoBuffer
+  DM_PutDataIntoBufferRow
 
  Parameter
   uint32_t: The new row data to be stored in the display buffer

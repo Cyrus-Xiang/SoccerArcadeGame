@@ -33,7 +33,7 @@
 /****************************************************************************/
 // This macro determines that nuber of services that are *actually* used in
 // a particular application. It will vary in value from 1 to MAX_NUM_SERVICES
-#define NUM_SERVICES 3
+#define NUM_SERVICES 4
 
 /****************************************************************************/
 // These are the definitions for Service 0, the lowest priority service.
@@ -83,13 +83,13 @@
 // These are the definitions for Service 3
 #if NUM_SERVICES > 3
 // the header file with the public function prototypes
-#define SERV_3_HEADER "TestHarnessService3.h"
+#define SERV_3_HEADER "LEDService.h"
 // the name of the Init function
-#define SERV_3_INIT InitTestHarnessService3
+#define SERV_3_INIT InitLEDService
 // the name of the run function
-#define SERV_3_RUN RunTestHarnessService3
+#define SERV_3_RUN RunLEDService
 // How big should this services Queue be?
-#define SERV_3_QUEUE_SIZE 3
+#define SERV_3_QUEUE_SIZE 5
 #endif
 
 /****************************************************************************/
@@ -273,7 +273,8 @@ typedef enum
   DBButtonDown,
   Pot_Val_Update,
   EnableServo,
-  DisableServo
+  DisableServo,
+  ES_LED_Disp_Need_Update,
           
 }ES_EventType_t;
 
@@ -332,7 +333,7 @@ typedef enum
 #define TIMER9_RESP_FUNC TIMER_UNUSED
 #define TIMER10_RESP_FUNC TIMER_UNUSED
 #define TIMER11_RESP_FUNC TIMER_UNUSED
-#define TIMER12_RESP_FUNC TIMER_UNUSED
+#define TIMER12_RESP_FUNC PostLEDService
 #define TIMER13_RESP_FUNC PostSoccerFSM
 #define TIMER14_RESP_FUNC PostSoccerFSM
 #define TIMER15_RESP_FUNC PostTestHarnessService0
@@ -347,5 +348,6 @@ typedef enum
 #define SERVICE0_TIMER 15
 #define SHOTCLOCK_TIMER 14
 #define Solenoid_shutdown_timer 13
+#define LED_Timer 12
 
 #endif /* ES_CONFIGURE_H */

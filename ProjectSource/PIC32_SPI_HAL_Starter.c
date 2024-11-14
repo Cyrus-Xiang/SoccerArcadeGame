@@ -151,32 +151,27 @@ bool SPISetup_BasicConfig(SPI_Module_t WhichModule)
 ****************************************************************************/
 bool SPISetup_SetFollower(SPI_Module_t WhichModule)
 {
-  // Your Code goes here :-)
-
- 
   bool ReturnVal = true;
-  if (false == isSPI_ModuleLegal(WhichModule)) { 
+  // Your Code goes here :-)
+  if ( false == isSPI_ModuleLegal(WhichModule))
+  {
       ReturnVal = false;
-      
-  }else{
-      //everything is legal{
-      //sets msten bits and maps pins as inputs
-      selectModuleRegisters(WhichModule);
-      //sets MSTEN and makes digital (clears ansel=0), sets input (tris=1)
-      if (WhichModule== SPI_SPI1) {
-         pSPICON->MSTEN = 0;
-        *setTRISRegisters[SPI_RPB14] = mapPinMap2BitPosn[SPI_RPB14];
-        *clrANSELRegisters[SPI_RPB14] = mapPinMap2BitPosn[SPI_RPB14];
-      }
-    else if (WhichModule == SPI_SPI2) {
-          pSPICON->MSTEN = 0;
-          *setTRISRegisters[SPI_RPB15] = mapPinMap2BitPosn[SPI_RPB15];
-          *clrANSELRegisters[SPI_RPB15] = mapPinMap2BitPosn[SPI_RPB15];
-      }
-  }
-    
-     
+  }else // Legal module so set it up
+  {
+     selectModuleRegisters(WhichModule); 
+     pSPICON->MSTEN = 0;
+     if(WhichModule == SPI_SPI1){
+    *setTRISRegisters[SPI_RPB14] = mapPinMap2BitPosn[SPI_RPB14];
+        // clear the ANSEL bit to disable analog on the pin
+    *clrANSELRegisters[SPI_RPB14] = mapPinMap2BitPosn[SPI_RPB14];
 
+     }else{
+    *setTRISRegisters[SPI_RPB15] = mapPinMap2BitPosn[SPI_RPB15];
+        // clear the ANSEL bit to disable analog on the pin
+    *clrANSELRegisters[SPI_RPB15] = mapPinMap2BitPosn[SPI_RPB15];
+     }
+    
+  }  
   return ReturnVal;
 }
 
@@ -191,48 +186,30 @@ bool SPISetup_SetFollower(SPI_Module_t WhichModule)
    be called immediately after the call to SPISetup_BasicConfig. 
    2) the PIC32 documentation refers to this mode as master mode.
 ****************************************************************************/
-bool SPISetup_SetLeader(SPI_Module_t WhichModule, SPI_SamplePhase_t WhichPhase)
+bool SPISetup_SetLeader(SPI_Module_t WhichModule, SPI_SamplePhase_t WhichPhase    )
 {
-  
-  // Your Code goes here :-)
-
-  
-
   bool ReturnVal = true;
-  
-  //first need to check legality of module and phase
-  if (false == isSPI_ModuleLegal(WhichModule)) { 
+  // Your Code goes here :-)
+  if ( false == isSPI_ModuleLegal(WhichModule))
+  {
       ReturnVal = false;
-  }
-  else if (WhichPhase != SPI_SMP_MID && WhichPhase != SPI_SMP_END) {
-      ReturnVal = false;
-  }
-  
- 
-  else {
-      selectModuleRegisters(WhichModule);
-      pSPICON->MSTEN = 1;
-      
-      //phase polarity setup (for both registers)
-      if (WhichPhase==SPI_SMP_MID){
-          pSPICON->SMP=0;
-      }
-      else if (WhichPhase==SPI_SMP_END){
-          pSPICON->SMP=1; 
-      }
-      
-      //making individual register level stuff
-      if (WhichModule== SPI_SPI1) {
-          *clrTRISRegisters[SPI_RPB14] = mapPinMap2BitPosn[SPI_RPB14];
-          *clrANSELRegisters[SPI_RPB14] = mapPinMap2BitPosn[SPI_RPB14];
-      }
-      else if (WhichModule== SPI_SPI2) {
-          *clrTRISRegisters[SPI_RPB15] = mapPinMap2BitPosn[SPI_RPB15];
-          *clrANSELRegisters[SPI_RPB15] = mapPinMap2BitPosn[SPI_RPB15];
-      }
-      
-  }
-  //need to set clock to output
+  }else // Legal module so set it up
+  {
+    selectModuleRegisters(WhichModule); 
+    pSPICON->MSTEN = 1;
+    pSPICON->SMP = WhichPhase;
+    if(WhichModule == SPI_SPI1){
+      *clrTRISRegisters[SPI_RPB14] = mapPinMap2BitPosn[SPI_RPB14];//clr means clearing and setting to 0, 0 means output mode
+        // clear the ANSEL bit to disable analog on the pin
+    *clrANSELRegisters[SPI_RPB14] = mapPinMap2BitPosn[SPI_RPB14];
+
+    }else{ //meaning its SPI2
+    *clrTRISRegisters[SPI_RPB15] = mapPinMap2BitPosn[SPI_RPB15];//clr means clearing and setting to 0
+        // clear the ANSEL bit to disable analog on the pin
+    *clrANSELRegisters[SPI_RPB15] = mapPinMap2BitPosn[SPI_RPB15];
+    }
+    
+  }  
   return ReturnVal;
 }
 
@@ -247,18 +224,17 @@ bool SPISetup_SetLeader(SPI_Module_t WhichModule, SPI_SamplePhase_t WhichPhase)
 bool SPISetup_SetBitTime(SPI_Module_t WhichModule, uint32_t SPI_ClkPeriodIn_ns)
 {
   bool ReturnVal = true;
-  
-  //first need to check legality of module and time
-  if (false == isSPI_ModuleLegal(WhichModule) || SPI_ClkPeriodIn_ns> MAX_SPI_PERIOD) { 
+  // Your Code goes here :-
+  if ( false == isSPI_ModuleLegal(WhichModule))
+  {
       ReturnVal = false;
-  }
-  //using formula to solve for spibrg
-  else {
-      selectModuleRegisters(WhichModule);
-      *pSPIBRG= ((20*SPI_ClkPeriodIn_ns)/2000)-1 ;
-  }
-
-
+  }else // Legal module so set it up
+  {
+    selectModuleRegisters(WhichModule); 
+    // *pSPIBRG = 999;
+    double clk_freq = 1 / (SPI_ClkPeriodIn_ns * 1e-9);
+    *pSPIBRG = (20e6/(2*clk_freq)-1);
+  } 
   return ReturnVal;
 }
 /****************************************************************************
@@ -273,6 +249,7 @@ bool SPISetup_SetBitTime(SPI_Module_t WhichModule, uint32_t SPI_ClkPeriodIn_ns)
    Legal port pins for the SS2 input are:
    SPI_RPA3, SPI_RPB0, SPI_RPB9, SPI_RPB10,SPI_RPB14.
 ****************************************************************************/
+//not needed
 bool SPISetup_MapSSInput(SPI_Module_t WhichModule, SPI_PinMap_t WhichPin)
 {
   // not needed for ME218a Labs
@@ -291,6 +268,7 @@ bool SPISetup_MapSSInput(SPI_Module_t WhichModule, SPI_PinMap_t WhichPin)
    Legal port pins for the SS2 output are:
    SPI_NO_PIN, SPI_RPA3, SPI_RPB0, SPI_RPB9, SPI_RPB10,SPI_RPB14.
 ****************************************************************************/
+//complete
 bool SPISetup_MapSSOutput(SPI_Module_t WhichModule, SPI_PinMap_t WhichPin)
 {
   bool ReturnVal = true;
@@ -350,6 +328,7 @@ bool SPISetup_MapSSOutput(SPI_Module_t WhichModule, SPI_PinMap_t WhichPin)
    Legal port pins for the SDI2 input are:
    SPI_NO_PIN, SPI_RPA2, SPI_RPA4, SPI_RPB2, SPI_RPB6,SPI_RPB13.   
 ****************************************************************************/
+//not needed
 bool SPISetup_MapSDInput(SPI_Module_t WhichModule, SPI_PinMap_t WhichPin)
 {
   // not needed for ME218a Labs
@@ -366,26 +345,22 @@ bool SPISetup_MapSDOutput(SPI_Module_t WhichModule, SPI_PinMap_t WhichPin)
 {
   bool ReturnVal = true;
   // Your Code goes here :-)
-  // set WhichPin to the SDO2 (corresponds to 0100)
-  
-  // Make sure that we have a legal module specified & legal pin
-  if ( (false == isSPI_ModuleLegal(WhichModule)) || (false == isSDOPinLegal(WhichPin)) ){
-    ReturnVal = false;
-  }
-  
-  else{
-      //select module, make digital and output
-      selectModuleRegisters(WhichModule);
-      *clrTRISRegisters[WhichPin] = mapPinMap2BitPosn[WhichPin];
-      *clrANSELRegisters[WhichPin] = mapPinMap2BitPosn[WhichPin];
-      //mapping the pin
-      if (WhichModule == SPI_SPI1){
-           *outputMapRegisters[WhichPin]= MAP_SDO1;
-      }
-      else {
-          *outputMapRegisters[WhichPin]= MAP_SDO2;
-      }
-  }
+  if ( false == isSPI_ModuleLegal(WhichModule) && false == isSDOPinLegal(WhichPin))
+  {
+      ReturnVal = false;
+  }else // Legal module and pin  so set it up
+  {
+    selectModuleRegisters(WhichModule);
+    *clrTRISRegisters[WhichPin] = mapPinMap2BitPosn[WhichPin];//clr means clearing and setting to 0, 0 means output mode
+        // clear the ANSEL bit to disable analog on the pin
+    *clrANSELRegisters[WhichPin] = mapPinMap2BitPosn[WhichPin];
+    if(WhichModule == SPI_SPI1){
+        *outputMapRegisters[WhichPin] = MAP_SDO1; 
+    }else{
+      *outputMapRegisters[WhichPin] = MAP_SDO2; 
+    }
+    
+  }  
   return ReturnVal;
 }
 
@@ -394,38 +369,23 @@ bool SPISetup_MapSDOutput(SPI_Module_t WhichModule, SPI_PinMap_t WhichPin)
     SPISetup_SetClockIdleState
 
  Description
-   Sets the idle state of the SPI clock. 
+   Sets the idle state of the SPI clock. (Clock Polarity)
 ****************************************************************************/
 bool SPISetup_SetClockIdleState(SPI_Module_t WhichModule, 
                                 SPI_Clock_t WhichState)
 {
   bool ReturnVal = true;
   // Your Code goes here :-)
-  
-  
-  //checking legal module and states
-  if ( false == isSPI_ModuleLegal(WhichModule)){
-    ReturnVal = false;
-  }
-  else if (WhichState != SPI_CLK_LO && WhichState !=SPI_CLK_HI){
+  if ( false == isSPI_ModuleLegal(WhichModule) && !(WhichState == 1 ||WhichState == 0))
+  {
       ReturnVal = false;
-  }
-  else {
-      selectModuleRegisters(WhichModule);
-      //doesn't run unless the spi is turned off bc we need to set before enabling spi
-      //then sets the ckp
-//      if(pSPICON->ON==1){
-//          ReturnVal= false;
-//      }
-    
-          pSPICON->CKP= WhichState;
-    
-      
-  }
-  
-  
-  
+  }else // Legal module and pin  so set it up
+  {
+    selectModuleRegisters(WhichModule);
+    pSPICON->CKP = WhichState;
+  }  
   return ReturnVal;
+  
   
 }
 /****************************************************************************
@@ -440,26 +400,16 @@ bool SPISetup_SetActiveEdge(SPI_Module_t WhichModule,
 {
   bool ReturnVal = true;
   // Your Code goes here :-)
-
-  //check legality of whichmodule and whichedge
-  if ( false == isSPI_ModuleLegal(WhichModule)){
-    ReturnVal = false;
-  }
-  else if (WhichEdge != SPI_SECOND_EDGE && WhichEdge != SPI_FIRST_EDGE){
+  if ( false == isSPI_ModuleLegal(WhichModule) && !(WhichEdge == 1 ||WhichEdge == 0))
+  {
       ReturnVal = false;
-  }
-  else {
-      selectModuleRegisters(WhichModule);
-      
-//      if(pSPICON->ON==1){
-//          ReturnVal= false;
-//      }
-//      else{
-          pSPICON->CKE= WhichEdge;
-      
-  }
-
+  }else // Legal module and pin  so set it up
+  {
+    selectModuleRegisters(WhichModule);
+    pSPICON->CKE = WhichEdge;
+  }  
   return ReturnVal;
+  
   
 }
 
@@ -473,35 +423,31 @@ bool SPISetup_SetActiveEdge(SPI_Module_t WhichModule,
 bool SPISetup_SetXferWidth(SPI_Module_t WhichModule, 
                             SPI_XferWidth_t DataWidth)
 {
-  bool ReturnVal = true;
+  
   // Your Code goes here :-)
+  
+  if ( false == isSPI_ModuleLegal(WhichModule)){return false;}
+  if (!(DataWidth == SPI_8BIT || DataWidth == SPI_16BIT || DataWidth == SPI_32BIT)){return false;}
 
-  //checking valid data width and whichmodel
-  if ( false == isSPI_ModuleLegal(WhichModule)){
-    ReturnVal = false;
-  }
-  else if (DataWidth != SPI_8BIT && DataWidth != SPI_16BIT && DataWidth != SPI_32BIT){
-      ReturnVal = false;
-  }
-  else {
+  // Legal module and pin  so set it up
+  selectModuleRegisters(WhichModule);
+      switch (DataWidth) {
+        case SPI_8BIT:
+            pSPICON->MODE16 = 0;
+            pSPICON->MODE32 = 0;
+            break;
+        case SPI_16BIT:
+          pSPICON->MODE16 = 1;
+          pSPICON->MODE32 = 0;
+            
+            break;
+        case SPI_32BIT:
+          pSPICON->MODE16 = 0;
+          pSPICON->MODE32 = 1;
+            break;
+    }
+    
   
-  
-      selectModuleRegisters(WhichModule);
-      if (DataWidth== SPI_8BIT){
-          pSPICON->MODE32= 0;
-          pSPICON->MODE16= 0;
-      }
-      else if (DataWidth== SPI_16BIT){
-          pSPICON->MODE32= 0;
-          pSPICON->MODE16= 1;
-      }
-      else {
-          pSPICON->MODE32= 1;
-      }
-      
-  }
-  
-  return ReturnVal;  
 }
 
 /****************************************************************************
@@ -515,20 +461,13 @@ bool SPISetEnhancedBuffer(SPI_Module_t WhichModule, bool IsEnhanced)
 {
   bool ReturnVal = true;
   // Your Code goes here :-)
-
-//checking WhichModel
-  if ( false == isSPI_ModuleLegal(WhichModule)){
+  if ( false == isSPI_ModuleLegal(WhichModule))
+  {
     ReturnVal = false;
+  }else{
+    selectModuleRegisters(WhichModule);
+    pSPICON->ENHBUF = IsEnhanced;
   }
-//  else if (pSPICON->ON!=0){
-//      ReturnVal= false;
-//  }
-  //setting enhanced condition
-  else{
-      selectModuleRegisters(WhichModule);
-      pSPICON->ENHBUF= IsEnhanced;
-  }
-      
   return ReturnVal;
 }
 
@@ -543,21 +482,13 @@ bool SPISetup_DisableSPI(SPI_Module_t WhichModule)
 {
   bool ReturnVal = true;
   // Your Code goes here :-)
-
-  //if WhichModule == SPI_SPI1
-    //set bit 15 (ON) of SPI_SPI1 to 0
-  //else
-    //set bit 15 (ON) of SPI_SPI1 to 0 uhhh check this
-  
-//checking WhichModel
-  if ( false == isSPI_ModuleLegal(WhichModule)){
+  if ( false == isSPI_ModuleLegal(WhichModule))
+  {
     ReturnVal = false;
+  }else{
+    selectModuleRegisters(WhichModule);
+    pSPICON->ON = 0;
   }
-  else {
-      selectModuleRegisters(WhichModule);
-      pSPICON->ON= 0;
-  }
-
   return ReturnVal;
   
 }
@@ -570,25 +501,19 @@ bool SPISetup_DisableSPI(SPI_Module_t WhichModule)
 ****************************************************************************/
 bool SPISetup_EnableSPI(SPI_Module_t WhichModule)
 {
-  bool ReturnVal = true;
+    bool ReturnVal = true;
   // Your Code goes here :-)
-  //if WhichModule == SPI_SPI1
-    //set bit 15 (ON) of SPI_SPI1 to 1
-  //else
-    //set bit 15 (ON) of SPI_SPI1 to 1
-  
-//checking WhichModel
-  if ( false == isSPI_ModuleLegal(WhichModule)){
+  if ( false == isSPI_ModuleLegal(WhichModule))
+  {
     ReturnVal = false;
+  }else{
+    selectModuleRegisters(WhichModule);
+    pSPICON->ON = 1;
   }
-  else {
-      selectModuleRegisters(WhichModule);
-      pSPICON->ON= 1;
-  }
-  
   return ReturnVal;
   
 }
+//not needed
 /****************************************************************************
  Function
     SPIOperate_SPI1_Send8
@@ -598,7 +523,8 @@ bool SPISetup_EnableSPI(SPI_Module_t WhichModule)
   Does not check if there is room in the buffer.
   Note: separate functions provided for SPI1 & SPI2 in order to speed operation
   and allow the SPI to be run at higher bit rates
-****************************************************************************/
+
+
 void SPIOperate_SPI1_Send8(uint8_t TheData)
 {
   // not needed for ME218a Labs
@@ -614,8 +540,9 @@ void SPIOperate_SPI1_Send8(uint8_t TheData)
   Note: separate functions provided for SPI1 & SPI2 in order to speed operation
   and allow the SPI to be run at higher bit rates
 ****************************************************************************/
-void SPIOperate_SPI1_Send16(uint16_t TheData)
+void SPIOperate_SPI1_Send16( uint16_t TheData)
 {
+    while (SPI1STATbits.SPITBF == 1) {} 
     SPI1BUF = TheData;       
 }
 /****************************************************************************
@@ -667,11 +594,11 @@ void SPIOperate_SPI1_Send8Wait(uint8_t TheData)
 void SPIOperate_SPI1_Send16Wait( uint16_t TheData)
 {
   // Your Code goes here :-)
+  while (SPI1STATbits.SPITBF == 1) {} 
+  SPI1BUF = TheData;
+  while (!SPIOperate_HasSS1_Risen()){
 
-  
-// waits until the SS1 has risen back up and then stops sending data
-    SPI1BUF= TheData;
-    while(!SPIOperate_HasSS1_Risen());
+  }
 }
 /****************************************************************************
  Function
@@ -721,14 +648,11 @@ bool SPIOperate_HasSS1_Risen(void)
 {
   bool ReturnVal = true;
   // Your Code goes here :-)
-  // this code has interrupts... copy from lab board when in lab :)
-  
- 
-  if(IFS0bits.INT4IF==true){
-      IFS0CLR=_IFS0_INT4IF_MASK;
-  }
-  else{
-      ReturnVal= false;
+  if (false == IFS0bits.INT4IF){
+    ReturnVal = false;
+
+  }else{
+    IFS0CLR = _IFS0_INT4IF_MASK;
   }
   return ReturnVal;
 }
@@ -792,17 +716,11 @@ static void selectModuleRegisters(SPI_Module_t WhichModule)
 static bool isSPI_ModuleLegal( SPI_Module_t WhichModule)
 {
   // Your Code goes here :-)
-
-  //if WhichModule is equal to SPI_SPI1 OR SPI_SPI2 return true boolean
-  //else return false boolean
-    bool ReturnVal = true;
-    if (WhichModule== SPI_SPI1 || WhichModule== SPI_SPI2){
-        ReturnVal= true;
-    }
-    else{
-        ReturnVal= false;
-    }
-    return ReturnVal;
+  if (WhichModule == SPI_SPI1 || WhichModule == SPI_SPI2){
+    return true;
+  }else{
+    return false;
+  }
 }
 
 /****************************************************************************
@@ -845,182 +763,42 @@ static bool isSDOPinLegal( SPI_PinMap_t WhichPin)
 {
   bool ReturnVal = false;
   // Your Code goes here :-)
-
-  //For each value in SPI_PinMap_t
-    //compare value to WhichPin
-      //if WhichPin == value in SPI_PinMap_t
-        //ReturnVal= true
-        //end loop
-      //else do nothing (bc val is already false) 
-  
-  for (int i=0; i<=10; i++){
-      if (LegalSDOxPins[i]==WhichPin){
-          ReturnVal= true;
-          
-      }
-  
-}
   return ReturnVal;
 }
 
-//	Function Prototypes
-int main(void);
-
-
-//Okay my definitions go here
 
 
 //int main(void) {
-//    SPI_Module_t  SPI_1 = SPI_SPI1;
-//    uint32_t clockPeriod = 100000;
-//   
-//    // Basic SPI Configuration
-//    bool test;
+//  //Turn off SPI
+//  SPISetup_DisableSPI(SPI_SPI1);
+//
+//  //Config everything
+//  SPISetup_BasicConfig(SPI_SPI1); 
+//  SPISetup_SetLeader(SPI_SPI1,SPI_SMP_MID);
+//  SPISetup_MapSSOutput(SPI_SPI1, SPI_RPA0);
+//  SPISetup_MapSDOutput(SPI_SPI1, SPI_RPA1);
+//  SPISetup_SetClockIdleState(SPI_SPI1, SPI_CLK_HI);
+//  SPISetup_SetActiveEdge(SPI_SPI1, SPI_SECOND_EDGE);
+//  SPISetEnhancedBuffer(SPI_SPI1, true);
+//  SPISetup_SetXferWidth(SPI_SPI1, SPI_16BIT);
+//  SPISetup_SetBitTime(SPI_SPI1, 10000);
+//  //Turn SPI back on
+//  SPISetup_EnableSPI(SPI_SPI1);
 //    
-//    test = SPISetup_BasicConfig(SPI_1); 
-//    test = SPISetup_SetLeader(SPI_1, SPI_SMP_MID); // Set SPI to Master (Leader) mode
-//    test = SPISetup_SetBitTime(SPI_1, clockPeriod); // Set bit time for 10 kHz
-//    test = SPISetup_MapSSOutput(SPI_1, SPI_RPA0);
-//    test = SPISetup_MapSDOutput(SPI_1, SPI_RPA1);
-//    test = SPISetup_SetClockIdleState(SPI_1, SPI_CLK_HI);// Set clock idle state and active edge
-//    test = SPISetup_SetActiveEdge(SPI_1, SPI_SECOND_EDGE);
-//    test = SPISetup_SetXferWidth(SPI_1, SPI_16BIT); // Set transfer width to 16-bit
-//    test = SPISetEnhancedBuffer(SPI_1, true); // Enable enhanced buffer mode
-//    test = SPISetup_EnableSPI(SPI_1); // Enable the SPI module
-//        
-//        // Delay for SS1 to rise
-//        for (int i = 0; i < 400; i++);
-//       
-//        uint16_t data[] = {0x004D, 0x0045, 0x0032, 0x0031, 0x0038,
-//                           0x804D, 0x8045, 0x8032, 0x8031, 0x8038};
-//               
-//        for (int i = 0; i < 10; i++) {
-//            SPIOperate_SPI1_Send16(data[i]); // Send 16-bit data over SPI1
-//            while (SPI1STATbits.SPITBF == 1);
-//        }
-//          
-//    return 0;
+//    // SPI1BRG = 999;
+//
+//    // SPI1STATbits.SPIROV = 0;
+//  
+//    
+//
+//    uint16_t msg1[] = {0x004D, 0x0045, 0x0032, 0x0031, 0x0038, 0x804D, 0x8045, 0x8032, 0x8031, 0x8038};
+//    size_t size = sizeof(msg1) / sizeof(msg1[0]);
+//    for (size_t i = 0; i < size; i++) {
+//        //SPI1BUF=msg1[i];
+//    while (SPI_IsTransmitBufferFull(SPI_SPI1) == 1) {} 
+//        SPIOperate_SPI1_Send16(msg1[i]);
+//    }
+////       SPI1BUF=0x004D;
+//    
+//    for (uint16_t i = 0; i < 400; i++){};  
 //}
-
-//int main(void) {
-//    /*Configure tri-state registers*/
-//    //TRISAbits.TRISA2 = 1;   //SW1 as input
-//    //TRISAbits.TRISA3 = 1;   //SW2 as input
-//    
-//   // TRISBbits.TRISB2 = 0;   //LED1 as output
-//    //TRISBbits.TRISB3 = 0;   //LED2 as output
-//   
-//    //My Code Goes Here
-//   
-//    //setting all relevant pins to digital NEED TO FINISH THIS
-//    // EXAMPLE:  ANSELBbits.ANSB3 = 0; // RB3 (SCK - digital)
-//    //pins to do:
-//    //sdo1
-//    //sck1
-//    //ss1
-//    ANSELAbits.ANSA0= 0; //AO (ss1) is is digital
-//    ANSELAbits.ANSA1= 0; //A1 (sdo) is digital
-//    ANSELBbits.ANSB14= 0; //B14 (sck) is digital
-//   
-//    //mapping sdox, sckx and ssx outputs to pins... don't need to map SDI1 to an input pin
-//    RPA0R= 0b0011; //ss1
-//    TRISAbits.TRISA0 = 0; //ss1 pin A0 output
-//   
-//    RPA1R= 0b0011; //SDO1
-//    TRISAbits.TRISA1 = 0; //sdo1 pin A1 output
-//   
-//    TRISBbits.TRISB14 = 0; //sck pin is an output
-//   
-//  //clearing the on bit
-//    SPI1CONbits.ON = 0;
-//   
-//    //clearing the receive buffer
-//    SPI1BUF;
-//   
-//   
-//    //clearing spirov bit
-//    SPI1STATbits.SPIROV= 0;
-// 
-//   
-//    //setting enhanced buffer mode
-//    SPI1CONbits.ENHBUF= 1;
-//   
-//    //setting baud rate register
-//    SPI1BRG= 999; //do the math
-//   
-//        //set master mode
-//    SPI1CONbits.MSTEN= 1;
-//    //master mode slave select
-//    SPI1CONbits.MSSEN= 1;
-//   
-//    //setting cke and ckp
-//    SPI1CONbits.CKP= 1;
-//    SPI1CONbits.CKE= 0;
-//    
-//    // set spi to 8 bit
-//    SPI1CON2bits.AUDEN=0; /// use spi1con2 bc its on a
-//    SPI1CONbits.MODE16=0;
-//    SPI1CONbits.MODE32=0;
-//   
-// 
-//   
-//    //active low polarity on slave select
-//    SPI1CONbits.FRMPOL= 0;
-//   
-//    // PBCLK as clock for SPI
-//    SPI1CONbits.MCLKSEL = 0; //PBCLK IS USED BY THE BAUD RATE GENERATOR
-//   
-//    SPI1CONbits.SMP = 0;
-//   
-//    //turn on
-//    SPI1CONbits.ON = 1;
-//   
-//    //delay setting empty 400 for loop as per lab instruction
-// 
-//        for(int i =0; i<400; i++){
-//            //empty
-//    }
-//   
-////    char strLab[]= "ME218a";
-////   
-////    // goes until we reach the end of the string "\0"
-////    for (int i=0; strLab[i] != "\0"; i++){
-////        SPI1BUF= strLab[i];
-////    }
-//    SPI1BUF= 'M';
-//      for(int i =0; i<400; i++){
-//            //empty
-//    }
-//    SPI1BUF= 'E';
-//      for(int i =0; i<400; i++){
-//            //empty
-//    }
-//    SPI1BUF= '2';
-//      for(int i =0; i<400; i++){
-//            //empty
-//    }
-//    SPI1BUF= '1';
-//      for(int i =0; i<400; i++){
-//            //empty
-//    }
-//    SPI1BUF= '8';
-//      for(int i =0; i<400; i++){
-//            //empty
-//    }
-//    SPI1BUF= 'a';
-//      for(int i =0; i<400; i++){
-//            //empty
-//    }
-//   
-//    //adding a small buffer
-//     for(int i =0; i<400; i++){
-//            //empty
-//    }
-//   
-//   
-//   
-//   
-//   
-//   
-//   
-//    }

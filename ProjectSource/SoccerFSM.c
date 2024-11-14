@@ -30,10 +30,10 @@
 #include "ES_Port.h"
 #include "terminal.h"
 #include "dbprintf.h"
-#include "LEDFSM.h"
+
 /*----------------------------- Module Defines ----------------------------*/
 // these times assume a 10.000mS/tick timing
-#define TimePerRound_ms 10000
+#define TimePerRound_ms 5000
 
 /*---------------------------- Module Functions ---------------------------*/
 /* prototypes for private functions for this machine.They should be functions
@@ -277,7 +277,7 @@ ES_Event_t RunSoccerFSM(ES_Event_t ThisEvent)
         
 //        if (ThisEvent.EventType == ShotButtonDown || ThisEvent.EventType == ES_TIMEOUT){
         if (ThisEvent.EventType == ShotButtonDown){ //player 1 shoots here
-            
+            ES_Timer_StopTimer(SHOTCLOCK_TIMER);
             //launch solenoid
             LATBbits.LATB2 = 1;
             ES_Timer_InitTimer(Solenoid_shutdown_timer,1000);//start timer for shutting down solenoid
@@ -294,9 +294,8 @@ ES_Event_t RunSoccerFSM(ES_Event_t ThisEvent)
     {   
 //      if (ThisEvent.EventType == ShotButtonDown || ThisEvent.EventType == ES_TIMEOUT){ //player 2 shoots
     if (ThisEvent.EventType == ShotButtonDown){ //player 2 shoots
+            ES_Timer_StopTimer(SHOTCLOCK_TIMER);
             DB_printf("button detected in FSM \n");
-            
-            
             //launch solenoid
             LATBbits.LATB2 = 1;
             ES_Timer_InitTimer(Solenoid_shutdown_timer,1000);//start timer for shutting down solenoid
