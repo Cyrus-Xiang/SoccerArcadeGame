@@ -311,6 +311,7 @@ bool DM_AddChar2Buffer_Module(unsigned char Char2Display, uint8_t WhichModule)
 {
     if (WhichModule > 3)
     {
+      DB_printf("add char returned false\n");
       return false;
     }
     
@@ -327,29 +328,36 @@ bool DM_AddChar2Buffer_Module(unsigned char Char2Display, uint8_t WhichModule)
 //this function can only take into an char array of size less than 2
 bool DM_AddCharArray2Buffer_Module(char strArr[], uint8_t WhichModule){
   uint8_t ArrSize = sizeof(strArr)/sizeof(strArr[0]);
-  if (WhichModule > 3 || ArrSize >2 ){//check if inputs are legal
-      return false;
-    }
-  DM_ScrollModuleBuffer(9, WhichModule);//clear the module buffer
+  // if (WhichModule > 3 || ArrSize >2 ){//check if inputs are legal
+  //   DB_printf("add char array returned false\n");
+  //     return false;
+  //   }
+  DB_printf("0th element %c \n",strArr[0]);
+  DB_printf("1th element %c \n",strArr[1]);
+  DB_printf("2th element %c \n",strArr[2]);
+  DB_printf("3th element %c \n",strArr[3]);
+  char test[2] = {'a','b'};
+  DM_ScrollModuleBuffer(8, WhichModule);//clear the module buffer
   DM_AddChar2Buffer_Module(strArr[0],WhichModule);//display the first digit no matter what
   if (ArrSize > 1){
-    DM_ScrollModuleBuffer(4, Module);//scroll the first digit before adding the second
-    DM_AddChar2Buffer_Module(NumStr[1],Module);
+    DM_ScrollModuleBuffer(4, WhichModule);//scroll the first digit before adding the second
+    DM_AddChar2Buffer_Module(strArr[1],WhichModule);
   }
     return true;
 }
 
-bool DM_AddNum2Buffer_Module(uint8_t Num, uint8_t Module) {
-  if (Module > 3){
+bool DM_AddNum2Buffer_Module(uint8_t Num, uint8_t WhichModule) {
+  if (WhichModule > 3 || Num > 99){
       return false;
+      DB_printf("add num to buffer returned false\n");
     }
-  char NumStr[2];
+    char NumStr[2];//we need space for null terminator
+    if (Num > 9)
+    {
+      char NumStr[3];
+    }
   sprintf(NumStr, "%d", Num); 
-
-    
-    
-   
-    
+  DM_AddCharArray2Buffer_Module(NumStr, WhichModule);
     return true;
 }
 bool DM_ScrollModuleBuffer(uint8_t NumCols2Scroll, uint8_t WhichModule) // scroll to the right
