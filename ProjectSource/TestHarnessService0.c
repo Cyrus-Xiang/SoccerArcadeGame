@@ -223,8 +223,8 @@ ES_Event_t RunTestHarnessService0(ES_Event_t ThisEvent)
     break;
     case ES_NEW_KEY:   // announce
     {
-      DB_printf("ES_NEW_KEY received with -> %c <- in Service 0\r\n",
-          (char)ThisEvent.EventParam);
+      // DB_printf("ES_NEW_KEY received with -> %c <- in Service 0\r\n",
+      //     (char)ThisEvent.EventParam);
           if ('c'==ThisEvent.EventParam)
           {
             Event2Post.EventType = CoinDetect;
@@ -245,6 +245,12 @@ ES_Event_t RunTestHarnessService0(ES_Event_t ThisEvent)
             Event2Post.EventType = ShotButtonDown;
             PostSoccerFSM(Event2Post);
           }
+          if ('p'==ThisEvent.EventParam)
+          {
+            Event2Post.EventType = BallPlaced;
+            PostSoccerFSM(Event2Post);
+          }
+
       // if ('d' == ThisEvent.EventParam)
       // {
       //   ThisEvent.EventParam = DeferredChar++;   //

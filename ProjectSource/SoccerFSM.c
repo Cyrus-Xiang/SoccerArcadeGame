@@ -34,12 +34,12 @@
 /*----------------------------- Module Defines ----------------------------*/
 // these times assume a 10.000mS/tick timing
 #define TimePerRound_ms 5000
-#define TotalRounds 2
+#define TotalRounds 3
 /*---------------------------- Module Functions ---------------------------*/
 /* prototypes for private functions for this machine.They should be functions
    relevant to the behavior of this state machine
 */
-
+static void TurnOffJumboLEDs(void);
 /*---------------------------- Module Variables ---------------------------*/
 // everybody needs a state variable, you may need others as well.
 // type of state variable should match htat of enum in header file
@@ -47,12 +47,9 @@ static SoccerState_t CurrentState;
 static SoccerState_t NextState; //define the next state in run function
 static bool CoinLED;
 static bool Player1LED;
-static uint8_t Player1Rounds = 0;
-static uint8_t Player2Rounds = 0;
-//static uint8_t CurrentRound = 1;
 static uint8_t Player1Score = 0;
 static uint8_t Player2Score = 0;
-static uint8_t CurrentRound = 1;
+static  CurrentRound = 1;
 // with the introduction of Gen2, we need a module level Priority var as well
 static uint8_t MyPriority;
 static uint8_t CoinCount = 0;//counting the coins inserted
@@ -97,12 +94,13 @@ bool InitSoccerFSM(uint8_t Priority)
    ANSELBbits.ANSB13= 0; //digital
    TRISBbits.TRISB13= 1; //RB13 input
   
+  //define ball placement Sensor RB4
+  
+   TRISBbits.TRISB4= 1; //RB4 input, always digital
+
   //defining Shot button
   TRISBbits.TRISB5= 1; //RB5 input,, pin RB5 is always digital!
   
-  //defining Potentiometer Input
-//  ANSELBbits.ANSB15= 1; //analog
-//  TRISBbits.TRISB15= 1; //RB15input
  
   
   //Defining OUTPUT Ports here
@@ -221,6 +219,14 @@ ES_Event_t RunSoccerFSM(ES_Event_t ThisEvent)
     case GoalBeamBroken:{
     DB_printf("goal detected\n");
   }
+  break;
+      case BallPlaced:{
+    DB_printf("ball placement detected \n");
+  }
+    break;
+      case ShotButtonDown:{
+    DB_printf("shot button down detected \n");
+  }
     break;
   default:
     break;
@@ -233,6 +239,8 @@ ES_Event_t RunSoccerFSM(ES_Event_t ThisEvent)
   {
     case InitPState:        // If current state is initial Psedudo State
     {
+      //turn of all Jumbo LEDs first
+      TurnOffJumboLEDs();
       //turn on LED indicating coin slot
         LATBbits.LATB10 = 1;
         //move to next state
@@ -253,8 +261,6 @@ ES_Event_t RunSoccerFSM(ES_Event_t ThisEvent)
         if (CoinCount>=2){
             CoinCount = 0;
             //clear player scores and round numbers for the new game
-            Player1Rounds = 0;
-            Player2Rounds = 0;
             Player1Score = 0;
             Player2Score = 0;
             CurrentRound = 1;
@@ -262,27 +268,51 @@ ES_Event_t RunSoccerFSM(ES_Event_t ThisEvent)
             LATBbits.LATB11 = 1; 
 //            DB_printf("Coin Detected State"); 
             LATBbits.LATB10 = 0; //turns off coin indicator LED
- 
-            //init timer for solenoid countdown
-            ES_Timer_InitTimer(SHOTCLOCK_TIMER, TimePerRound_ms);
             
             //allow goalie movement
             Event2Post.EventType = EnableServo;
             PostServoService(Event2Post);
-            //make LED display scores and count downs
-            Event2Post.EventType = EnterScoreLED;
-            Event2Post.EventParam = TimePerRound_ms/1000;
+            NextState= Wait4BallPlacement1; //setting next state as waiting for player 1 to shoot
+            DB_printf("went to Wait4BallPlacement1 \n");
+            //tell LED matrix to instruct the user to place the ball
+            Event2Post.EventType = LED_Wait4Place_Msg;
             PostLEDService(Event2Post);
-            
-            NextState= Wait4Player1Shot; //setting next state as waiting for player 1 to shoot
-            DB_printf("went to Wait for Player 1 Shot \n");
             
         }
   
              
     }
     break;
-    
+    case Wait4BallPlacement1:{
+      if (ThisEvent.EventType == BallPlaced)
+      {
+        NextState = Wait4Player1Shot;
+            ES_Timer_InitTimer(SHOTCLOCK_TIMER, TimePerRound_ms);
+            //reinitialize LED countdown
+            //make LED display scores and count downs
+            Event2Post.EventType = EnterScoreLED;
+            Event2Post.EventParam = TimePerRound_ms/1000;
+            PostLEDService(Event2Post);
+            Event2Post.EventType = LED_RestartTimer4Player;
+            PostLEDService(Event2Post);
+      }
+    }
+    break;
+    case Wait4BallPlacement2:{
+      if (ThisEvent.EventType == BallPlaced)
+      {
+        NextState = Wait4Player2Shot;
+        ES_Timer_InitTimer(SHOTCLOCK_TIMER, TimePerRound_ms);
+        //make LED display scores and count downs
+            Event2Post.EventType = EnterScoreLED;
+            Event2Post.EventParam = TimePerRound_ms/1000;
+            PostLEDService(Event2Post);
+        //reinitialize LED countdown
+        Event2Post.EventType = LED_RestartTimer4Player;
+        PostLEDService(Event2Post);
+      }
+    }
+    break;
     case Wait4Player1Shot:        // If current state is state one
     {
         
@@ -327,8 +357,8 @@ ES_Event_t RunSoccerFSM(ES_Event_t ThisEvent)
     
         if (ThisEvent.EventType == GoalBeamBroken) { // GOALLLL
             
-            //increase goal counter and player 1 round
-            Player1Rounds++;
+            //increase goal counter 
+      
             Player1Score += 1;
             //update player1 score on LED
             Event2Post.EventType = LED_P1ScoreUpdate;
@@ -337,23 +367,20 @@ ES_Event_t RunSoccerFSM(ES_Event_t ThisEvent)
             // Ball returned for Player 1, transition to next state
              //LED lights up player 2 turn;
             LATBbits.LATB12 = 1; 
-            NextState = Wait4Player2Shot;
-            DB_printf("goal!! went to Player 2 Shot \n");
-            ES_Timer_InitTimer(SHOTCLOCK_TIMER, TimePerRound_ms);
-          //reinitialize LED countdown
-            Event2Post.EventType = LED_RestartTimer4Player;
-            PostLEDService(Event2Post);
+            NextState = Wait4BallPlacement2;
+            DB_printf("goal!! went to Wait4BallPlacement2 \n");
+            
             
         }
     
         else if (ThisEvent.EventType == MissBeamBroken){
-            Player1Rounds++;
+          
             // Ball returned for Player 1, transition to next state
              //LED lights up player 2 turn;
             LATBbits.LATB12 = 1; 
-            NextState = Wait4Player2Shot;
-            DB_printf("missed! went to Player 2 Shot \n");
-            ES_Timer_InitTimer(SHOTCLOCK_TIMER, TimePerRound_ms);
+            NextState = Wait4BallPlacement2;
+            DB_printf("missed! went to Wait4BallPlacement2 \n");
+            
             
         }
     
@@ -365,8 +392,8 @@ ES_Event_t RunSoccerFSM(ES_Event_t ThisEvent)
       //do this
     if (ThisEvent.EventType == GoalBeamBroken) { // GOALLLL
             
-            //increase goal counter and player 1 round
-            Player2Rounds++;
+            //increase goal counter 
+          
             Player2Score += 1;
             //update player 2 score on LED Matrix
             Event2Post.EventType = LED_P2ScoreUpdate;
@@ -381,7 +408,7 @@ ES_Event_t RunSoccerFSM(ES_Event_t ThisEvent)
         }
     
         else if (ThisEvent.EventType == MissBeamBroken){
-            Player2Rounds++;
+           
             // Ball returned for Player 1, transition to next state
               
             NextState = CheckingEndGame;
@@ -397,19 +424,19 @@ ES_Event_t RunSoccerFSM(ES_Event_t ThisEvent)
         if (CurrentRound < TotalRounds) {
             // If rounds are less than 2, continue the game
             CurrentRound++;
-            NextState = Wait4Player1Shot;  // Next round
+            NextState = Wait4BallPlacement1;  // Next round
             LATBbits.LATB11 = 1; //LED lights up player 1 turn;
            
-            DB_printf("went to wait for player 1 shot, start round 2 \n");
-            ES_Timer_InitTimer(SHOTCLOCK_TIMER, TimePerRound_ms);
-            //reinitialize LED countdown
-            Event2Post.EventType = LED_RestartTimer4Player;
-            PostLEDService(Event2Post);
+            DB_printf("went to Wait4BallPlacement1 \n");
+
         } 
         else {
+          DB_printf("End Game reached \n");
             // End game 
             NextState = Wait4Coin;  
-            DB_printf("End Game reached \n");
+            //turn of all Jumbo LEDs first and turn on wait4 coin led
+            TurnOffJumboLEDs();
+            LATBbits.LATB10 = 1;
             //disable servo
             Event2Post.EventType = DisableServo;
             PostServoService(Event2Post);
@@ -441,74 +468,17 @@ ES_Event_t RunSoccerFSM(ES_Event_t ThisEvent)
   return ReturnEvent;
 }
 
+/*************************
+ * private functions
+*/
+static void TurnOffJumboLEDs(void){
+  LATBbits.LATB10 = 0; 
+  LATBbits.LATB11 = 0; 
+  LATBbits.LATB12 = 0; 
+  
+}
 
 
-// Helper Functinos
-
-//bool CheckMissBeamSensor(void) {
-//    if (PORTBbits.RB13 == 0) {
-//        // Sensor is blocked, return true
-//        return true;
-//    } else {
-//        // Sensor is not blocked, return false
-//        return false;
-//    }
-//}
-//
-//// Helper function to check Player 1's ball return
-//bool CheckBallReturnPlayer1() {
-//    if (CheckMissBeamSensor()) {
-//        Player1Rounds++;
-//        Player1Score += 1;  // Increase score for Player 1
-////        UpdateDisplayForPlayer1();
-//        return true;
-//    }
-//    return false;
-//}
-//
-//// Helper function to check Player 2's ball return
-//bool CheckBallReturnPlayer2() {
-//    if (CheckMissBeamSensor()) {
-//        Player2Rounds++;
-//        Player2Score += 1;  // Increase score for Player 2
-////        UpdateDisplayForPlayer2();
-//        return true;
-//    }
-//    return false;
-//}
-
-// Function to update the display for Player 1
-//void UpdateDisplayForPlayer1() {
-//    UpdateDotMatrixDisplay(Player1Score, Player2Score);
-//    DisplayPlayerTurn(1); // Change this to the LED
-//}
-
-// Function to update the display for Player 2
-//void UpdateDisplayForPlayer2() {
-//    UpdateDotMatrixDisplay(Player1Score, Player2Score);
-//    DisplayPlayerTurn(2); // Change this to the LED
-//}
-
-// Function to update the score display
-//void UpdateDotMatrixDisplay(uint8_t Player1Score, uint8_t Player2Score) {
-    // Display the current scores on the dot matrix (you can call your display functions here)
-    // Example: DM_DisplayScore(Player1Score, Player2Score);
-//    DM_DisplayScore(Player1Score, Player2Score);  // This function would handle the display update
-//}
-
-// Display winner at the end of the game
-//void DisplayWinner() {
-//    if (Player1Score > Player2Score) {
-//        // Display Player 1 as winner
-//        DM_DisplayWinner(1);  // Example function to show Player 1 as winner
-//    } else if (Player2Score > Player1Score) {
-//        // Display Player 2 as winner
-//        DM_DisplayWinner(2);  // Example function to show Player 2 as winner
-//    } else {
-//        // Display draw if scores are equal
-//        DM_DisplayDraw();  // Example function to display a draw
-//    }
-//}
 /****************************************************************************
  Function
      QueryTemplateSM

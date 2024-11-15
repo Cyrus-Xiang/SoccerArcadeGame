@@ -26,6 +26,7 @@ bool Check4Shot(void);
 bool Check4Goal(void); //has both goal and no goal states in this event
 bool Check4Pot(void);
 bool Check4Keystroke(void);
+bool Check4BallPlacement(void);
 
 
 //do i need one for a timer? doubt it

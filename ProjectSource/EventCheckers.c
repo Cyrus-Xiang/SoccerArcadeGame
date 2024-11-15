@@ -107,7 +107,26 @@ bool Check4Lock(void)
    J. Edward Carryer, 08/06/13, 13:48
 ****************************************************************************/
 
-
+bool Check4BallPlacement(void){
+      ES_Event_t ThisEvent;
+  //initialize current local variables
+    bool ReturnVal = false;
+    // bool CurrentPlacementState= PORTBbits.RB4; //defining to read input of placement sensor on RB4
+    // static bool LastPlacementState = 1;
+    // //check to see if different coin state (switch from low to high indicates the end of coin passing through)
+    // if(CurrentPlacementState != LastPlacementState){
+    //     //if it is returning high coin just passed through
+    //     if(!CurrentPlacementState){
+    //         ThisEvent.EventType= BallPlaced;
+    //         PostSoccerFSM(ThisEvent);
+    //        DB_printf("ball place detected in event checker \n");
+    //        ReturnVal = true;
+    //     }
+    // LastPlacementState= CurrentPlacementState;
+    // }     
+  
+  return ReturnVal;
+}
 //need to check the high to low input to determine coin insert
 bool Check4Coin(void)
 {
@@ -122,7 +141,6 @@ bool Check4Coin(void)
 //         if(!CurrentCoinState){
 //             ThisEvent.EventType= CoinDetect;
 //             PostSoccerFSM(ThisEvent);
-//             PostTestHarnessService0(ThisEvent);
 // //            DB_printf("coin detected in event checker \n");
 //         }
 //         ReturnVal = true;

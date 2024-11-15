@@ -281,7 +281,9 @@ typedef enum
   LED_P2ScoreUpdate,
   DisplayWinner,
   LED_RestartTimer4Player,
-  LED_CoinCountMsg
+  LED_CoinCountMsg,
+  LED_Wait4Place_Msg,
+  BallPlaced
  
           
 }ES_EventType_t;
@@ -318,7 +320,7 @@ typedef enum
 
 /****************************************************************************/
 // This is the list of event checking functions
-#define EVENT_CHECK_LIST Check4Coin, Check4Goal, Check4Shot, Check4Keystroke, Check4Pot
+#define EVENT_CHECK_LIST Check4Coin, Check4Goal, Check4Shot, Check4Keystroke, Check4Pot, Check4BallPlacement
 
 
 

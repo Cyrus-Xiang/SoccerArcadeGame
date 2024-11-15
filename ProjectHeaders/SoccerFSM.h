@@ -18,7 +18,7 @@ typedef enum
 {
   InitPState, Wait4Coin, Wait4Player1Shot, 
   Wait4Player2Shot, Wait4Player1Ball, Wait4Player2Ball, CheckingEndGame,
-  Wait4BallPlacement
+  Wait4BallPlacement1, Wait4BallPlacement2
 }SoccerState_t;
 
 // Public Function Prototypes

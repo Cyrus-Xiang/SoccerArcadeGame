@@ -52,6 +52,8 @@ static uint16_t Player2Score = 0;
 static int8_t TimeLeft_s; //count down time for solenoid shot
 static uint16_t TimePerRound_s;
 #define ScrollTimeInterval_ms 300
+//external variables
+extern CurrentRound;
 /*------------------------------ Module Code ------------------------------*/
 /****************************************************************************
  Function
@@ -165,9 +167,20 @@ ES_Event_t RunLEDService(ES_Event_t ThisEvent)
     case ScrollMsgMode:{
       switch (ThisEvent.EventType)
       {
+        case LED_Wait4Place_Msg:{
+            DM_ClearDisplayBuffer();
+        LongMsg = "PLAY1 PLEASE PLACE BALL ";
+
+          MsgLength = 24;
+          msg_ind = 0;
+          //update the LED matrix
+          Event2post.EventType = ES_LED_Disp_Need_Update;
+          PostLEDService(Event2post);
+        }
+        break;
       case LED_CoinCountMsg:{
         DM_ClearDisplayBuffer();
-        LongMsg = "Coin Inserted 1/2 ";
+        LongMsg = "COIN INSERTED 1/2 ";
 
           MsgLength = 18;
           msg_ind = 0;
@@ -272,6 +285,7 @@ ES_Event_t RunLEDService(ES_Event_t ThisEvent)
         break;
         case BallShot:{
           TimeLeft_s = 0;
+          
         }
         break;
         case LED_RestartTimer4Player:{
@@ -280,6 +294,8 @@ ES_Event_t RunLEDService(ES_Event_t ThisEvent)
         }
         break;
         case LED_P1ScoreUpdate:{
+          //DB_printf("round number in LEDService is %u\n",CurrentRound);
+          //CurrentRound++;
           Player1Score = ThisEvent.EventParam;
           DM_AddNum2Buffer_Module(Player1Score,3);
           Event2post.EventType = ES_LED_Disp_Need_Update;
@@ -287,6 +303,7 @@ ES_Event_t RunLEDService(ES_Event_t ThisEvent)
         }
         break;
         case LED_P2ScoreUpdate:{
+          // DB_printf("round number in LEDService is %u\n",CurrentRound);
           Player2Score = ThisEvent.EventParam;
           DM_AddNum2Buffer_Module(Player2Score,1);
           Event2post.EventType = ES_LED_Disp_Need_Update;
