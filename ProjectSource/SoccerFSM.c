@@ -33,8 +33,8 @@
 
 /*----------------------------- Module Defines ----------------------------*/
 // these times assume a 10.000mS/tick timing
-#define TimePerRound_ms 5000
-#define TotalRounds 3
+#define TimePerRound_ms 15000
+#define TotalRounds 2
 /*---------------------------- Module Functions ---------------------------*/
 /* prototypes for private functions for this machine.They should be functions
    relevant to the behavior of this state machine

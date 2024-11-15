@@ -203,6 +203,10 @@ ES_Event_t RunLEDService(ES_Event_t ThisEvent)
         Player2Score = 0;
         DM_AddNum2Buffer_Module(Player1Score,3);
         DM_AddNum2Buffer_Module(Player2Score,1);
+        //add a VS on the 2nd module
+        DM_AddChar2Buffer_Module('V',2);
+        DM_ScrollModuleBuffer(4,2);
+        DM_AddChar2Buffer_Module('S',2);
         Event2post.EventType = ES_LED_Disp_Need_Update;
         PostLEDService(Event2post);
       }
