@@ -16,7 +16,9 @@
 // State definitions for use with the query function
 typedef enum
 {
-  InitPState, Wait4Coin, Wait4Player1Shot, Wait4Player2Shot, Wait4Player1Ball, Wait4Player2Ball, CheckingEndGame
+  InitPState, Wait4Coin, Wait4Player1Shot, 
+  Wait4Player2Shot, Wait4Player1Ball, Wait4Player2Ball, CheckingEndGame,
+  Wait4BallPlacement
 }SoccerState_t;
 
 // Public Function Prototypes

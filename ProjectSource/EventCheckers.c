@@ -201,7 +201,7 @@ bool Check4Keystroke(void)
     ThisEvent.EventType = ES_NEW_KEY;
     ThisEvent.EventParam = GetNewKey();
     PostTestHarnessService0(ThisEvent);
-    PostLEDService(ThisEvent);
+    //PostLEDService(ThisEvent);
     return true;
   }
   return false;

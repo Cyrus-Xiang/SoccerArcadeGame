@@ -15,8 +15,9 @@
 // State definitions for use with the query function
 typedef enum
 {
-    LongTextMode,
+    ScrollMsgMode,
     ScoreMode,
+    StaticMsgMode
 }LED_MatrixState_t;
 // Public Function Prototypes
 

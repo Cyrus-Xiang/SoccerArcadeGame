@@ -276,12 +276,13 @@ typedef enum
   DisableServo,
   ES_LED_Disp_Need_Update,
   EnterScoreLED,
-  EnterWaitLED,
   BallShot,
   LED_P1ScoreUpdate,
   LED_P2ScoreUpdate,
   DisplayWinner,
-  LED_RestartTimer
+  LED_RestartTimer4Player,
+  LED_CoinCountMsg
+ 
           
 }ES_EventType_t;
 

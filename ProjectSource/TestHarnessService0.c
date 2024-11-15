@@ -240,6 +240,11 @@ ES_Event_t RunTestHarnessService0(ES_Event_t ThisEvent)
             Event2Post.EventType = MissBeamBroken;
             PostSoccerFSM(Event2Post);
           }
+          if ('s'==ThisEvent.EventParam)
+          {
+            Event2Post.EventType = ShotButtonDown;
+            PostSoccerFSM(Event2Post);
+          }
       // if ('d' == ThisEvent.EventParam)
       // {
       //   ThisEvent.EventParam = DeferredChar++;   //

@@ -33,7 +33,7 @@
 
 /*----------------------------- Module Defines ----------------------------*/
 // these times assume a 10.000mS/tick timing
-#define TimePerRound_ms 15000
+#define TimePerRound_ms 5000
 #define TotalRounds 2
 /*---------------------------- Module Functions ---------------------------*/
 /* prototypes for private functions for this machine.They should be functions
@@ -55,6 +55,7 @@ static uint8_t Player2Score = 0;
 static uint8_t CurrentRound = 1;
 // with the introduction of Gen2, we need a module level Priority var as well
 static uint8_t MyPriority;
+static uint8_t CoinCount = 0;//counting the coins inserted
 
 /*------------------------------ Module Code ------------------------------*/
 /****************************************************************************
@@ -238,15 +239,19 @@ ES_Event_t RunSoccerFSM(ES_Event_t ThisEvent)
         NextState= Wait4Coin;
         DB_printf("InitPState reached\n");
         DB_printf("went to Wait for Coin State \n");
-       Event2Post.EventType = EnterWaitLED;
-       PostLEDService(Event2Post);
-       ES_Timer_InitTimer(LED_Timer,500);
+       
     }
     break;
 
     case Wait4Coin:        // If current state is state one
     {
         if (ThisEvent.EventType == CoinDetect){
+          CoinCount++;
+          Event2Post.EventType=LED_CoinCountMsg;
+          PostLEDService(Event2Post);
+        }
+        if (CoinCount>=2){
+            CoinCount = 0;
             //clear player scores and round numbers for the new game
             Player1Rounds = 0;
             Player2Rounds = 0;
@@ -266,6 +271,7 @@ ES_Event_t RunSoccerFSM(ES_Event_t ThisEvent)
             PostServoService(Event2Post);
             //make LED display scores and count downs
             Event2Post.EventType = EnterScoreLED;
+            Event2Post.EventParam = TimePerRound_ms/1000;
             PostLEDService(Event2Post);
             
             NextState= Wait4Player1Shot; //setting next state as waiting for player 1 to shoot
@@ -335,7 +341,7 @@ ES_Event_t RunSoccerFSM(ES_Event_t ThisEvent)
             DB_printf("goal!! went to Player 2 Shot \n");
             ES_Timer_InitTimer(SHOTCLOCK_TIMER, TimePerRound_ms);
           //reinitialize LED countdown
-            Event2Post.EventType = LED_RestartTimer;
+            Event2Post.EventType = LED_RestartTimer4Player;
             PostLEDService(Event2Post);
             
         }
@@ -397,17 +403,28 @@ ES_Event_t RunSoccerFSM(ES_Event_t ThisEvent)
             DB_printf("went to wait for player 1 shot, start round 2 \n");
             ES_Timer_InitTimer(SHOTCLOCK_TIMER, TimePerRound_ms);
             //reinitialize LED countdown
-            Event2Post.EventType = LED_RestartTimer;
+            Event2Post.EventType = LED_RestartTimer4Player;
             PostLEDService(Event2Post);
         } 
         else {
-            // End game, display winner
-//            DisplayWinner();
+            // End game 
             NextState = Wait4Coin;  
-            DB_printf("End Game/n");
+            DB_printf("End Game reached \n");
+            //disable servo
             Event2Post.EventType = DisableServo;
             PostServoService(Event2Post);
+            //display winner
             Event2Post.EventType = DisplayWinner;
+            if (Player1Score > Player2Score)
+            {
+              Event2Post.EventParam = 1;
+            }else if (Player1Score < Player2Score)
+            {
+              Event2Post.EventParam = 2;
+            }else // it's a tie
+            {
+              Event2Post.EventParam = 0;
+            }
             PostLEDService(Event2Post);
             
         }    

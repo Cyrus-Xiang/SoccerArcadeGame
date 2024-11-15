@@ -43,24 +43,15 @@ static uint8_t MyPriority;
 #define HALF_SEC (ONE_SEC / 2)
 #define TWO_SEC (ONE_SEC * 2)
 #define FIVE_SEC (ONE_SEC * 5)
-static const char LongMsg[] = "Please Insert Coin";
-// O lady, my heart
-//  but come here if ever before
-// you caught my voice far off
-// and listening left your father's golden house and came,
-//  yoking your car. And fine birds brought you,
-// quick sparrows over the black earth
-// whipping their wings down the sky
-// through midair—they arrived. But you, O blessed one,
-// smiled in your deathless face
-// and asked what (now again) I have suffered and why(now again) I am calling out";
-static const size_t MsgLength = sizeof(LongMsg) / sizeof(LongMsg[0]);
-static uint8_t msg_ind = 0;
-static LED_MatrixState_t CurrentState = LongTextMode;
+static const char *LongMsg = "PLEASE INSERT COIN ";
+static size_t MsgLength = 19;
+static uint16_t msg_ind = 0;
+static LED_MatrixState_t CurrentState;
 static uint16_t Player1Score = 0;
 static uint16_t Player2Score = 0;
-static uint8_t TimeLeft; //count down time for solenoid shot
-#define TimePerRound_s 15
+static int8_t TimeLeft_s; //count down time for solenoid shot
+static uint16_t TimePerRound_s;
+#define ScrollTimeInterval_ms 300
 /*------------------------------ Module Code ------------------------------*/
 /****************************************************************************
  Function
@@ -171,16 +162,28 @@ ES_Event_t RunLEDService(ES_Event_t ThisEvent)
  LED_MatrixState_t NextState = CurrentState;
   ES_Event_t Event2post;
   switch (CurrentState) {
-    case LongTextMode:{
+    case ScrollMsgMode:{
       switch (ThisEvent.EventType)
       {
+      case LED_CoinCountMsg:{
+        DM_ClearDisplayBuffer();
+        LongMsg = "Coin Inserted 1/2 ";
+
+          MsgLength = 18;
+          msg_ind = 0;
+          //update the LED matrix
+          Event2post.EventType = ES_LED_Disp_Need_Update;
+          PostLEDService(Event2post);
+      }
+      break;
       case EnterScoreLED:{
         NextState = ScoreMode;
+        TimePerRound_s = ThisEvent.EventParam;
         ES_Timer_StopTimer(LED_Timer);
         DM_ClearDisplayBuffer();
         //reset the timer and update display buffer
-        TimeLeft = TimePerRound_s-1;
-        DM_AddNum2Buffer_Module(TimeLeft,0);
+        TimeLeft_s = TimePerRound_s-1;
+        DM_AddNum2Buffer_Module(TimeLeft_s,0);
         ES_Timer_InitTimer(LED_Timer4Player,1000);
         //clear players scores and update display buffer
         Player1Score = 0; 
@@ -195,7 +198,7 @@ ES_Event_t RunLEDService(ES_Event_t ThisEvent)
         if (ThisEvent.EventParam == LED_Timer)
         {
           // DB_printf("LED Timer timed out \n");
-          ES_Timer_InitTimer(LED_Timer, 500);
+          ES_Timer_InitTimer(LED_Timer, ScrollTimeInterval_ms);
           ES_Event_t event2post;
           event2post.EventType = ES_NEW_KEY;
           if (msg_ind < MsgLength)
@@ -229,10 +232,23 @@ ES_Event_t RunLEDService(ES_Event_t ThisEvent)
         switch (ThisEvent.EventType)
         {
         case DisplayWinner:{
-          NextState = LongTextMode;
+          NextState = ScrollMsgMode;
           DM_ClearDisplayBuffer();
-          ES_Timer_InitTimer(LED_Timer,500);
+          ES_Timer_InitTimer(LED_Timer,ScrollTimeInterval_ms);
+          //prepare the new msg to be displayed
+          if (ThisEvent.EventParam == 0)
+          {
+            LongMsg = "GAME IS A TIE ";
+          }else if (ThisEvent.EventParam == 1)
+          {
+            LongMsg = "PLAYER 1 WINS ";
+          }else if (ThisEvent.EventParam == 2)
+          {
+            LongMsg = "PLAYER 2 WINS ";
+          }
+          MsgLength = 14;
           msg_ind = 0;
+          //update the LED matrix
           Event2post.EventType = ES_LED_Disp_Need_Update;
           PostLEDService(Event2post);
         }
@@ -240,12 +256,12 @@ ES_Event_t RunLEDService(ES_Event_t ThisEvent)
         case ES_TIMEOUT:{
           if (ThisEvent.EventParam == LED_Timer4Player)
           {
-            if (TimeLeft >= 0)
+            if (TimeLeft_s >= 0)
             {
-              DM_AddNum2Buffer_Module(TimeLeft,0);
+              DM_AddNum2Buffer_Module(TimeLeft_s,0);
               Event2post.EventType = ES_LED_Disp_Need_Update;
               PostLEDService(Event2post);
-              TimeLeft --;
+              TimeLeft_s --;
               ES_Timer_InitTimer(LED_Timer4Player,1000);
             }else // meaning there is no time left
             {
@@ -255,11 +271,11 @@ ES_Event_t RunLEDService(ES_Event_t ThisEvent)
         }
         break;
         case BallShot:{
-          TimeLeft = 0;
+          TimeLeft_s = 0;
         }
         break;
-        case LED_RestartTimer:{
-          TimeLeft = TimePerRound_s-1;
+        case LED_RestartTimer4Player:{
+          TimeLeft_s = TimePerRound_s-1;
           ES_Timer_InitTimer(LED_Timer4Player,1000);
         }
         break;
@@ -277,11 +293,13 @@ ES_Event_t RunLEDService(ES_Event_t ThisEvent)
           PostLEDService(Event2post);
         }
         break;
+        
         default:
           break;
         }
     }
     break;
+    
     default:
     break;
   }
@@ -289,11 +307,15 @@ ES_Event_t RunLEDService(ES_Event_t ThisEvent)
 
   //below is independent of the FSM and doing its own thing
   //the LED matrix's row by row update runs in parallel in the background
+  
   switch (ThisEvent.EventType)
   {
     case ES_INIT:
     {
-      
+      CurrentState = ScrollMsgMode;
+      DM_ClearDisplayBuffer();
+      ES_Timer_InitTimer(LED_Timer,ScrollTimeInterval_ms);
+      DB_printf("Scroll message mode in LED Service\n");
     }break;
     case ES_LED_Disp_Need_Update:
     {
@@ -304,7 +326,8 @@ ES_Event_t RunLEDService(ES_Event_t ThisEvent)
         ES_PostToService(MyPriority, event2post);
       }
       
-    }break;
+    }
+    break;
     default:
     break;
   
