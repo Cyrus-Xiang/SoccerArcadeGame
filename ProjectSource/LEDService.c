@@ -35,7 +35,7 @@
 /* prototypes for private functions for this service.They should be functions
    relevant to the behavior of this service
 */
-
+static void ChangeLongMsg(void);
 /*---------------------------- Module Variables ---------------------------*/
 // with the introduction of Gen2, we need a module level Priority variable
 static uint8_t MyPriority;
@@ -43,8 +43,8 @@ static uint8_t MyPriority;
 #define HALF_SEC (ONE_SEC / 2)
 #define TWO_SEC (ONE_SEC * 2)
 #define FIVE_SEC (ONE_SEC * 5)
-static const char *LongMsg = "PLEASE INSERT COIN ";
-static size_t MsgLength = 19;
+static const char *LongMsg = "PLEASE INSERT COINS ";
+static size_t MsgLength = 20;
 static uint16_t msg_ind = 0;
 static LED_MatrixState_t CurrentState;
 static uint16_t Player1Score = 0;
@@ -227,7 +227,18 @@ ES_Event_t RunLEDService(ES_Event_t ThisEvent)
             msg_ind = 1;
           }   
           ES_PostToService(MyPriority, event2post);
+        }else if (ThisEvent.EventParam == LED_InactivityMsgTimer)
+        {
+          DM_ClearDisplayBuffer();
+          ES_Timer_InitTimer(LED_Timer,ScrollTimeInterval_ms);
+          LongMsg = "PLEASE INSERT COINS ";
+          MsgLength = 20;
+          msg_ind = 0;
+          //update the LED matrix
+          Event2post.EventType = ES_LED_Disp_Need_Update;
+          PostLEDService(Event2post);
         }
+        
       }
       break;
       case ES_NEW_KEY:   
@@ -325,7 +336,16 @@ ES_Event_t RunLEDService(ES_Event_t ThisEvent)
     break;
   }
   CurrentState = NextState;
-
+  //check user inactivity
+  if(ThisEvent.EventType == UserInactivity){
+          CurrentState = ScrollMsgMode;
+          LongMsg = "TIMEOUT DUE TO USER INACTIVITY ";
+          MsgLength = 31;
+          msg_ind = 0;
+          ES_Timer_InitTimer(LED_InactivityMsgTimer,10000);
+          ChangeLongMsg();
+        }
+   
   //below is independent of the FSM and doing its own thing
   //the LED matrix's row by row update runs in parallel in the background
   
@@ -359,7 +379,17 @@ ES_Event_t RunLEDService(ES_Event_t ThisEvent)
 /***************************************************************************
  private functions
  ***************************************************************************/
-
+//The function will clear the module, init LED Timer send LED_needs_update event
+void ChangeLongMsg(void){
+  DM_ClearDisplayBuffer();
+  ES_Timer_InitTimer(LED_Timer,ScrollTimeInterval_ms);
+         
+  //update the LED matrix
+  ES_Event_t Event2post;
+  Event2post.EventType = ES_LED_Disp_Need_Update;
+  PostLEDService(Event2post);
+  
+}
 /*------------------------------- Footnotes -------------------------------*/
 /*------------------------------ End of file ------------------------------*/
 

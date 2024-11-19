@@ -239,6 +239,7 @@ bool Check4Pot(void)
       ThisEvent.EventType = Pot_Val_Update;
       ThisEvent.EventParam = (uint16_t) Curr_AD_Val1[0];
       PostServoService(ThisEvent);
+      PostSoccerFSM(ThisEvent);
       return true;
       }
   return false;

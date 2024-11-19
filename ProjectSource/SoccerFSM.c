@@ -33,13 +33,15 @@
 
 /*----------------------------- Module Defines ----------------------------*/
 // these times assume a 10.000mS/tick timing
-#define TimePerRound_ms 15000
+#define TimePerRound_ms 11000
 #define TotalRounds 2
+#define InactiveTimeAllowed 20000
 /*---------------------------- Module Functions ---------------------------*/
 /* prototypes for private functions for this machine.They should be functions
    relevant to the behavior of this state machine
 */
 static void TurnOffJumboLEDs(void);
+static void ReturnToWait4Coin(void);
 /*---------------------------- Module Variables ---------------------------*/
 // everybody needs a state variable, you may need others as well.
 // type of state variable should match htat of enum in header file
@@ -188,7 +190,7 @@ bool PostSoccerFSM(ES_Event_t ThisEvent)
 ES_Event_t RunSoccerFSM(ES_Event_t ThisEvent)
 {
     
-    
+  
   ES_Event_t ReturnEvent;
   ReturnEvent.EventType = ES_NO_EVENT; // assume no errors
   ES_Event_t Event2Post;
@@ -280,6 +282,8 @@ ES_Event_t RunSoccerFSM(ES_Event_t ThisEvent)
             //tell LED matrix to instruct the user to place the ball
             Event2Post.EventType = LED_Wait4Place_Msg;
             PostLEDService(Event2Post);
+            //set inactivity clock
+            ES_Timer_InitTimer(InactivityTimer,InactiveTimeAllowed);
             
         }
   
@@ -289,7 +293,7 @@ ES_Event_t RunSoccerFSM(ES_Event_t ThisEvent)
     case Wait4BallPlacement1:{
       if (ThisEvent.EventType == BallPlaced)
       {
-        NextState = Wait4Player1Shot;
+           NextState = Wait4Player1Shot;
             ES_Timer_InitTimer(SHOTCLOCK_TIMER, TimePerRound_ms);
             //reinitialize LED countdown
             //make LED display scores and count downs
@@ -298,7 +302,15 @@ ES_Event_t RunSoccerFSM(ES_Event_t ThisEvent)
             PostLEDService(Event2Post);
             Event2Post.EventType = LED_RestartTimer4Player;
             PostLEDService(Event2Post);
-      }
+            //turn off inactivity timer
+        ES_Timer_StopTimer(InactivityTimer);
+      }        //check for user inactivity
+      else if (ThisEvent.EventType == ES_TIMEOUT && ThisEvent.EventParam == InactivityTimer)
+          {
+            ReturnToWait4Coin();
+            NextState = Wait4Coin;
+          }
+      
     }
     break;
     case Wait4BallPlacement2:{
@@ -313,7 +325,14 @@ ES_Event_t RunSoccerFSM(ES_Event_t ThisEvent)
         //reinitialize LED countdown
         Event2Post.EventType = LED_RestartTimer4Player;
         PostLEDService(Event2Post);
+        //turn off inactivity timer
+        ES_Timer_StopTimer(InactivityTimer);
       }
+      else if (ThisEvent.EventType == ES_TIMEOUT && ThisEvent.EventParam == InactivityTimer)
+          {
+            ReturnToWait4Coin();
+            NextState = Wait4Coin;
+          }
     }
     break;
     case Wait4Player1Shot:        // If current state is state one
@@ -375,7 +394,8 @@ ES_Event_t RunSoccerFSM(ES_Event_t ThisEvent)
             //turn on buzzer
             Event2Post.EventType = TurnBuzzerOn;
             PostBuzzerService(Event2Post);
-            
+            //set inactivity clock
+            ES_Timer_InitTimer(InactivityTimer,InactiveTimeAllowed);
         }
     
         else if (ThisEvent.EventType == MissBeamBroken){
@@ -385,7 +405,8 @@ ES_Event_t RunSoccerFSM(ES_Event_t ThisEvent)
             LATBbits.LATB12 = 1; 
             NextState = Wait4BallPlacement2;
             DB_printf("missed! went to Wait4BallPlacement2 \n");
-            
+            //set inactivity clock
+            ES_Timer_InitTimer(InactivityTimer,InactiveTimeAllowed);
             
         }
     
@@ -412,6 +433,7 @@ ES_Event_t RunSoccerFSM(ES_Event_t ThisEvent)
             //turn on buzzer
             Event2Post.EventType = TurnBuzzerOn;
             PostBuzzerService(Event2Post);
+          
         }
     
         else if (ThisEvent.EventType == MissBeamBroken){
@@ -421,7 +443,6 @@ ES_Event_t RunSoccerFSM(ES_Event_t ThisEvent)
             NextState = CheckingEndGame;
             PostSoccerFSM(Event2Post);
             DB_printf("missed!! went to wait Checking Endgame\n");
-             // NEED TO INITIALIZE TIMER HERE ***************************************************
         }
     
     break;
@@ -435,18 +456,14 @@ ES_Event_t RunSoccerFSM(ES_Event_t ThisEvent)
             LATBbits.LATB11 = 1; //LED lights up player 1 turn;
            
             DB_printf("went to Wait4BallPlacement1 \n");
-
+            //set inactivity clock
+            ES_Timer_InitTimer(InactivityTimer,InactiveTimeAllowed);
         } 
         else {
-          DB_printf("End Game reached \n");
+          DB_printf("End of game \n");
             // End game 
             NextState = Wait4Coin;  
-            //turn of all Jumbo LEDs first and turn on wait4 coin led
-            TurnOffJumboLEDs();
-            LATBbits.LATB10 = 1;
-            //disable servo
-            Event2Post.EventType = DisableServo;
-            PostServoService(Event2Post);
+            ReturnToWait4Coin();
             //display winner
             Event2Post.EventType = DisplayWinner;
             if (Player1Score > Player2Score)
@@ -462,16 +479,13 @@ ES_Event_t RunSoccerFSM(ES_Event_t ThisEvent)
             PostLEDService(Event2Post);
             
         }    
-      //do this
     
     break;
-    
-    
-    default:
+       default:
     break;
   } 
   CurrentState=NextState; // set the current state to be next state 
-  // end switch on Current State
+
   return ReturnEvent;
 }
 
@@ -484,6 +498,19 @@ static void TurnOffJumboLEDs(void){
   LATBbits.LATB12 = 0; 
   
 }
+//this function resets jumbo LEDs, disables servo, and make LED Matrix display display user inactivity
+static void ReturnToWait4Coin(void){
+  ES_Event_t Event2Post;
+  //turn of all Jumbo LEDs first and turn on wait4 coin led
+  TurnOffJumboLEDs();
+  LATBbits.LATB10 = 1;//please insert coin LED on
+  //disable servo
+  Event2Post.EventType = DisableServo;
+  PostServoService(Event2Post);
+  Event2Post.EventType = UserInactivity;
+  PostLEDService(Event2Post);
+}
+
 
 
 /****************************************************************************
@@ -506,6 +533,7 @@ static void TurnOffJumboLEDs(void){
 SoccerState_t QuerySoccerFSM(void)
 {
   return CurrentState;
+  
 }
 
 /***************************************************************************

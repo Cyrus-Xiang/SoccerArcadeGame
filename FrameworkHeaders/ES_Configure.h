@@ -284,7 +284,8 @@ typedef enum
   LED_CoinCountMsg,
   LED_Wait4Place_Msg,
   BallPlaced,
-  TurnBuzzerOn
+  TurnBuzzerOn,
+  UserInactivity
  
           
 }ES_EventType_t;
@@ -340,8 +341,8 @@ typedef enum
 #define TIMER5_RESP_FUNC TIMER_UNUSED
 #define TIMER6_RESP_FUNC TIMER_UNUSED
 #define TIMER7_RESP_FUNC TIMER_UNUSED
-#define TIMER8_RESP_FUNC TIMER_UNUSED
-#define TIMER9_RESP_FUNC TIMER_UNUSED
+#define TIMER8_RESP_FUNC PostLEDService
+#define TIMER9_RESP_FUNC PostSoccerFSM
 #define TIMER10_RESP_FUNC PostBuzzerService
 #define TIMER11_RESP_FUNC PostLEDService
 #define TIMER12_RESP_FUNC PostLEDService
@@ -362,5 +363,7 @@ typedef enum
 #define LED_Timer 12 // this timer is for updating scrolling text like in lab3
 #define LED_Timer4Player 11 // this timer is for the count down time of solenoid shot
 #define BuzzerTimer 10
+#define InactivityTimer 9
+#define LED_InactivityMsgTimer 8
 
 #endif /* ES_CONFIGURE_H */
