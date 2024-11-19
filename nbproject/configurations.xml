@@ -53,6 +53,7 @@
       <itemPath>ProjectHeaders/PIC32_AD_Lib.h</itemPath>
       <itemPath>ProjectHeaders/ServoService.h</itemPath>
       <itemPath>ProjectHeaders/LEDService.h</itemPath>
+      <itemPath>ProjectHeaders/BuzzerService.h</itemPath>
     </logicalFolder>
     <logicalFolder name="ExternalFiles"
                    displayName="Important Files"
@@ -78,6 +79,7 @@
       <itemPath>ProjectSource/ServoService.c</itemPath>
       <itemPath>ProjectSource/PWM_PIC32.c</itemPath>
       <itemPath>ProjectSource/LEDService.c</itemPath>
+      <itemPath>ProjectSource/BuzzerService.c</itemPath>
     </logicalFolder>
   </logicalFolder>
   <sourceRootList>
@@ -247,8 +249,36 @@
         <property key="wpo-lto" value="false"/>
       </C32Global>
       <item path="ProjectHeaders/LEDFSM.h" ex="true" overriding="false">
+        <C32>
+        </C32>
+        <C32-AR>
+        </C32-AR>
+        <C32-AS>
+        </C32-AS>
+        <C32-CO>
+        </C32-CO>
+        <C32-LD>
+        </C32-LD>
+        <C32CPP>
+        </C32CPP>
+        <C32Global>
+        </C32Global>
       </item>
       <item path="ProjectSource/LEDFSM.c" ex="true" overriding="false">
+        <C32>
+        </C32>
+        <C32-AR>
+        </C32-AR>
+        <C32-AS>
+        </C32-AS>
+        <C32-CO>
+        </C32-CO>
+        <C32-LD>
+        </C32-LD>
+        <C32CPP>
+        </C32CPP>
+        <C32Global>
+        </C32Global>
       </item>
       <item path="ProjectSource/main.c" ex="false" overriding="false">
         <C32>

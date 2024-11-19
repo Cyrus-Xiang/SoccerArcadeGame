@@ -33,7 +33,7 @@
 /****************************************************************************/
 // This macro determines that nuber of services that are *actually* used in
 // a particular application. It will vary in value from 1 to MAX_NUM_SERVICES
-#define NUM_SERVICES 4
+#define NUM_SERVICES 5
 
 /****************************************************************************/
 // These are the definitions for Service 0, the lowest priority service.
@@ -96,11 +96,11 @@
 // These are the definitions for Service 4
 #if NUM_SERVICES > 4
 // the header file with the public function prototypes
-#define SERV_4_HEADER "TestHarnessService4.h"
+#define SERV_4_HEADER "BuzzerService.h"
 // the name of the Init function
-#define SERV_4_INIT InitTestHarnessService4
+#define SERV_4_INIT InitBuzzerService
 // the name of the run function
-#define SERV_4_RUN RunTestHarnessService4
+#define SERV_4_RUN RunBuzzerService
 // How big should this services Queue be?
 #define SERV_4_QUEUE_SIZE 3
 #endif
@@ -283,7 +283,8 @@ typedef enum
   LED_RestartTimer4Player,
   LED_CoinCountMsg,
   LED_Wait4Place_Msg,
-  BallPlaced
+  BallPlaced,
+  TurnBuzzerOn
  
           
 }ES_EventType_t;
@@ -341,7 +342,7 @@ typedef enum
 #define TIMER7_RESP_FUNC TIMER_UNUSED
 #define TIMER8_RESP_FUNC TIMER_UNUSED
 #define TIMER9_RESP_FUNC TIMER_UNUSED
-#define TIMER10_RESP_FUNC TIMER_UNUSED
+#define TIMER10_RESP_FUNC PostBuzzerService
 #define TIMER11_RESP_FUNC PostLEDService
 #define TIMER12_RESP_FUNC PostLEDService
 #define TIMER13_RESP_FUNC PostSoccerFSM
@@ -360,5 +361,6 @@ typedef enum
 #define Solenoid_shutdown_timer 13
 #define LED_Timer 12 // this timer is for updating scrolling text like in lab3
 #define LED_Timer4Player 11 // this timer is for the count down time of solenoid shot
+#define BuzzerTimer 10
 
 #endif /* ES_CONFIGURE_H */

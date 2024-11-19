@@ -110,7 +110,10 @@ bool InitSoccerFSM(uint8_t Priority)
   LATBbits.LATB2 = 0; //initialize the solenoid as off
   //COIN LED OUTPUT PIN
   TRISBbits.TRISB10= 0; //RB10 output,, always digital
-  
+  //buzzer pin
+  ANSELBbits.ANSB1= 0; //digital
+  TRISBbits.TRISB1= 0; //RB1 output
+  LATBbits.LATB1 = 0; //initialize buzzer as off
   //PLAYER 1 SHOOT INDICATOR OUTPUT LED
   TRISBbits.TRISB11= 0; //RB11 output,, always digital
   
@@ -369,7 +372,9 @@ ES_Event_t RunSoccerFSM(ES_Event_t ThisEvent)
             LATBbits.LATB12 = 1; 
             NextState = Wait4BallPlacement2;
             DB_printf("goal!! went to Wait4BallPlacement2 \n");
-            
+            //turn on buzzer
+            Event2Post.EventType = TurnBuzzerOn;
+            PostBuzzerService(Event2Post);
             
         }
     
@@ -404,7 +409,9 @@ ES_Event_t RunSoccerFSM(ES_Event_t ThisEvent)
             NextState = CheckingEndGame;
             PostSoccerFSM(Event2Post);
             DB_printf("goal!! went to Checking Endgame \n");
-            // NEED TO INITIALIZE TIMER HERE ***************************************************
+            //turn on buzzer
+            Event2Post.EventType = TurnBuzzerOn;
+            PostBuzzerService(Event2Post);
         }
     
         else if (ThisEvent.EventType == MissBeamBroken){
