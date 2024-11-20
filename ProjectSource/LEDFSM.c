@@ -98,7 +98,7 @@ bool InitLEDFSM(uint8_t Priority)
     SPISetup_DisableSPI(SPI_SPI1);
     SPISetup_BasicConfig(SPI_SPI1);
     SPISetup_SetLeader(SPI_SPI1, SPI_SMP_MID); //set spi to master mode
-    SPISetup_SetBitTime(SPI_SPI1, 100000); //start at 10000 and if doesn't work bump it to a Million
+    SPISetup_SetBitTime(SPI_SPI1, 10000); //start at 10000 and if doesn't work bump it to a Million
     SPISetup_MapSSOutput(SPI_SPI1, SPI_RPA0); 
     SPISetup_MapSDOutput(SPI_SPI1, SPI_RPA1);
     SPISetup_SetClockIdleState(SPI_SPI1, SPI_CLK_LO); //set clock idle state and active edge via spec sheet
