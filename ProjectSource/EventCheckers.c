@@ -162,9 +162,21 @@ bool Check4Goal(void)
 
     
     //initializing miss sensor readings on pin RB13
-    bool CurrentMissState= PORTBbits.RB13;
-    static bool LastMissState = 1;
+    bool CurrentMissState= PORTAbits.RA4;
+    static bool LastMissState= 1;
     
+    bool CurrentMissState1= PORTBbits.RB13;
+    static bool LastMissState1 = 1;
+    if (CurrentMissState1 != LastMissState1)
+    {
+      if(!CurrentMissState1){
+            ThisEvent.EventType= GoalBeamBroken;
+            PostSoccerFSM(ThisEvent);
+            PostTestHarnessService0(ThisEvent);
+        }
+        ReturnVal = true;
+    }
+    LastMissState1 = CurrentMissState1;
     //check to see if different goal state (switch from low to high indicates the end of ball passing through goal)
     if(CurrentGoalState != LastGoalState){
         //if it is returning high, ball just passed through
