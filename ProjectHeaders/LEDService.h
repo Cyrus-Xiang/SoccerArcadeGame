@@ -17,8 +17,17 @@ typedef enum
 {
     ScrollMsgMode,
     ScoreMode,
-    StaticMsgMode
 }LED_MatrixState_t;
+
+enum WhichMsgEnum{
+  WelcomeMsg,
+  Player1WinMsg,
+  Player2WinMsg,
+  TieMsg,
+  InactivityMsg,
+  PlaceBallMsg,
+  CoinInserted1Msg,
+};
 // Public Function Prototypes
 
 bool InitLEDService(uint8_t Priority);

@@ -266,8 +266,6 @@ typedef enum
           ShotButtonDown,
           GoalBeamBroken,
           MissBeamBroken,
-          StartSecondRound,
-          EndGame,
           ES_WAITBUFFER,
           ES_WAITCHAR,
   DBButtonDown,
@@ -277,15 +275,12 @@ typedef enum
   ES_LED_Disp_Need_Update,
   EnterScoreLED,
   BallShot,
-  LED_P1ScoreUpdate,
-  LED_P2ScoreUpdate,
-  DisplayWinner,
+  LED_ScoreUpdate,
   LED_RestartTimer4Player,
-  LED_CoinCountMsg,
-  LED_Wait4Place_Msg,
   BallPlaced,
   TurnBuzzerOn,
-  UserInactivity
+  UserInactivity,
+  LED_ChangeMsg
  
           
 }ES_EventType_t;

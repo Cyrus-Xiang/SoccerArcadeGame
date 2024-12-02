@@ -2,6 +2,7 @@
     "files.associations": {
         "dm_display.h": "c",
         "dbprintf.h": "c",
-        "terminal.h": "c"
+        "terminal.h": "c",
+        "ledservice.h": "c"
     }
 }
