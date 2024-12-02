@@ -3577,6 +3577,12 @@
 		(uuid "d9b38f6f-cf1c-4b42-8b7b-e1811efd9104")
 	)
 	(junction
+		(at 186.69 74.93)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "dbb98a68-1d7c-4ecb-9bea-6ac265fad753")
+	)
+	(junction
 		(at 167.64 45.72)
 		(diameter 0)
 		(color 0 0 0 0)
@@ -3876,7 +3882,7 @@
 	)
 	(wire
 		(pts
-			(xy 187.96 74.93) (xy 200.66 74.93)
+			(xy 186.69 74.93) (xy 200.66 74.93)
 		)
 		(stroke
 			(width 0)
@@ -4006,7 +4012,7 @@
 	)
 	(wire
 		(pts
-			(xy 157.48 74.93) (xy 180.34 74.93)
+			(xy 157.48 74.93) (xy 186.69 74.93)
 		)
 		(stroke
 			(width 0)
@@ -4573,6 +4579,16 @@
 			(type default)
 		)
 		(uuid "c96bf60e-a916-4de1-95f0-6f45aec59b4e")
+	)
+	(wire
+		(pts
+			(xy 186.69 68.58) (xy 186.69 74.93)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "c9885bf3-2c7b-4090-8399-b4258b37697f")
 	)
 	(wire
 		(pts
@@ -5416,6 +5432,73 @@
 		)
 	)
 	(symbol
+		(lib_id "power:GNDREF")
+		(at 194.31 68.58 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "08dcd763-9936-4719-a1e0-dbd99673e2c6")
+		(property "Reference" "#PWR05"
+			(at 194.31 74.93 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Value" "GNDREF"
+			(at 194.31 73.66 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Footprint" ""
+			(at 194.31 68.58 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" ""
+			(at 194.31 68.58 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" ""
+			(at 194.31 68.58 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "0bf49cd8-ebaa-48a4-98d9-bf1fc7754edc")
+		)
+		(instances
+			(project "proj_Checkpoint1"
+				(path "/86ae32bf-6cc2-4ee9-9184-401e8238aa80"
+					(reference "#PWR05")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
 		(lib_id "power:+5V")
 		(at 88.9 66.04 0)
 		(unit 1)
@@ -5497,7 +5580,7 @@
 		(dnp no)
 		(fields_autoplaced yes)
 		(uuid "11058dfe-a067-4f12-b58a-7eee184e827b")
-		(property "Reference" "R2"
+		(property "Reference" "R_pull"
 			(at 208.28 100.33 90)
 			(effects
 				(font
@@ -5505,7 +5588,7 @@
 				)
 			)
 		)
-		(property "Value" "Res1"
+		(property "Value" "10k"
 			(at 208.28 102.87 90)
 			(effects
 				(font
@@ -5549,7 +5632,7 @@
 		(instances
 			(project "proj_Checkpoint1"
 				(path "/86ae32bf-6cc2-4ee9-9184-401e8238aa80"
-					(reference "R2")
+					(reference "R_pull")
 					(unit 1)
 				)
 			)
@@ -7455,6 +7538,73 @@
 		)
 	)
 	(symbol
+		(lib_id "ME218_BaseLib:Res1")
+		(at 190.5 68.58 90)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "b6ec8a7d-1bb8-42aa-a662-832c0a2df117")
+		(property "Reference" "R_pull"
+			(at 190.5 63.5 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "10k"
+			(at 190.5 66.04 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 190.754 67.564 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" ""
+			(at 190.5 68.58 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" ""
+			(at 190.5 68.58 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "911c515a-ea80-42f1-9617-f8bd4d2303af")
+		)
+		(pin "2"
+			(uuid "2d364269-a722-4d2d-8fee-8a66e8d04766")
+		)
+		(instances
+			(project "proj_Checkpoint1"
+				(path "/86ae32bf-6cc2-4ee9-9184-401e8238aa80"
+					(reference "R_pull")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
 		(lib_id "power:GNDREF")
 		(at 109.22 72.39 0)
 		(unit 1)
@@ -8149,73 +8299,6 @@
 			(project "proj_Checkpoint1"
 				(path "/86ae32bf-6cc2-4ee9-9184-401e8238aa80"
 					(reference "U8")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
-		(lib_id "ME218_BaseLib:Res1")
-		(at 184.15 74.93 90)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(dnp no)
-		(uuid "d34defc3-7605-4d71-994a-49ee6668124a")
-		(property "Reference" "R_gate"
-			(at 186.69 71.12 90)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Value" "1k"
-			(at 186.69 73.66 90)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Footprint" ""
-			(at 184.404 73.914 90)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" ""
-			(at 184.15 74.93 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Description" ""
-			(at 184.15 74.93 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(pin "1"
-			(uuid "905f741b-9c40-4080-b32b-ef8eb565c99d")
-		)
-		(pin "2"
-			(uuid "1e903cf2-29dd-4823-818a-450a8c3f3f78")
-		)
-		(instances
-			(project "proj_Checkpoint1"
-				(path "/86ae32bf-6cc2-4ee9-9184-401e8238aa80"
-					(reference "R_gate")
 					(unit 1)
 				)
 			)
