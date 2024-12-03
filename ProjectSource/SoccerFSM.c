@@ -30,7 +30,7 @@
 #include "ES_Port.h"
 #include "terminal.h"
 #include "dbprintf.h"
-
+#include "LEDService.h"
 /*----------------------------- Module Defines ----------------------------*/
 // these times assume a 10.000mS/tick timing
 #define TimePerRound_ms 11000
@@ -47,8 +47,6 @@ static void ReturnToWait4Coin(void);
 // type of state variable should match htat of enum in header file
 static SoccerState_t CurrentState;
 static SoccerState_t NextState; //define the next state in run function
-static bool CoinLED;
-static bool Player1LED;
 static uint8_t Player1Score = 0;
 static uint8_t Player2Score = 0;
 static  CurrentRound = 1;
@@ -117,7 +115,12 @@ bool InitSoccerFSM(uint8_t Priority)
   TRISBbits.TRISB1= 0; //RB1 output
   LATBbits.LATB1 = 0; //initialize buzzer as off
   //miss beam sensor 2
+<<<<<<< HEAD
   TRISAbits.TRISA0= 1; //RB0 input
+=======
+  
+  TRISAbits.TRISA4= 1; //RB0 input
+>>>>>>> ab4a38960fa84957e5583e7690f0922255e69d29
   
   //PLAYER 1 SHOOT INDICATOR OUTPUT LED
   TRISBbits.TRISB11= 0; //RB11 output,, always digital
@@ -126,17 +129,7 @@ bool InitSoccerFSM(uint8_t Priority)
   ANSELBbits.ANSB12= 0; //digital
   TRISBbits.TRISB12= 0; //RB12 output
   DB_printf("FSM initialized, all pins set \n");
-  // LED MATRIX OUTPUT STUFF (SPI) COULD WE USE THIS WITH THE SPI HAL?? PROBABLY
-  
-  
-  //MOTORSERVO GOES HERE *****************************************************
-//    ANSELBbits.ANSB3= 0; //digital
-//    TRISBbits.TRISB3= 0; //RB2 output
-  
-  
-  //
-  
-  
+
   //put us into initial state
   CurrentState=InitPState;
   
@@ -263,7 +256,8 @@ ES_Event_t RunSoccerFSM(ES_Event_t ThisEvent)
     {
         if (ThisEvent.EventType == CoinDetect){
           CoinCount++;
-          Event2Post.EventType=LED_CoinCountMsg;
+          Event2Post.EventType=LED_ChangeMsg;
+          Event2Post.EventParam = CoinInserted1Msg;
           PostLEDService(Event2Post);
         }
         if (CoinCount>=2){
@@ -283,7 +277,8 @@ ES_Event_t RunSoccerFSM(ES_Event_t ThisEvent)
             NextState= Wait4BallPlacement1; //setting next state as waiting for player 1 to shoot
             DB_printf("went to Wait4BallPlacement1 \n");
             //tell LED matrix to instruct the user to place the ball
-            Event2Post.EventType = LED_Wait4Place_Msg;
+            Event2Post.EventType = LED_ChangeMsg;
+            Event2Post.EventParam = PlaceBallMsg;
             PostLEDService(Event2Post);
             //set inactivity clock
             ES_Timer_InitTimer(InactivityTimer,InactiveTimeAllowed);
@@ -299,14 +294,14 @@ ES_Event_t RunSoccerFSM(ES_Event_t ThisEvent)
            NextState = Wait4Player1Shot;
             ES_Timer_InitTimer(SHOTCLOCK_TIMER, TimePerRound_ms);
             //reinitialize LED countdown
-            //make LED display scores and count downs
+            //make LED matrix display scores and count downs
             Event2Post.EventType = EnterScoreLED;
             Event2Post.EventParam = TimePerRound_ms/1000;
             PostLEDService(Event2Post);
             Event2Post.EventType = LED_RestartTimer4Player;
             PostLEDService(Event2Post);
             //turn off inactivity timer
-        ES_Timer_StopTimer(InactivityTimer);
+            ES_Timer_StopTimer(InactivityTimer);
       }        //check for user inactivity
       else if (ThisEvent.EventType == ES_TIMEOUT && ThisEvent.EventParam == InactivityTimer)
           {
@@ -390,8 +385,8 @@ ES_Event_t RunSoccerFSM(ES_Event_t ThisEvent)
       
             Player1Score += 1;
             //update player1 score on LED
-            Event2Post.EventType = LED_P1ScoreUpdate;
-            Event2Post.EventParam = Player1Score;
+            Event2Post.EventType = LED_ScoreUpdate;
+            Event2Post.EventParam = 1;
             PostLEDService(Event2Post);
             // Ball returned for Player 1, transition to next state
              //LED lights up player 2 turn;
@@ -429,8 +424,8 @@ ES_Event_t RunSoccerFSM(ES_Event_t ThisEvent)
           
             Player2Score += 1;
             //update player 2 score on LED Matrix
-            Event2Post.EventType = LED_P2ScoreUpdate;
-            Event2Post.EventParam = Player2Score;
+            Event2Post.EventType = LED_ScoreUpdate;
+            Event2Post.EventParam = 2;
             PostLEDService(Event2Post);
             // Ball returned for Player 1, transition to next state 
   

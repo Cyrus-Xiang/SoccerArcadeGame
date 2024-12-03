@@ -344,6 +344,7 @@ bool DM_AddNum2Buffer_Module(uint8_t Num, uint8_t WhichModule) {
   
     return true;
 }
+
 bool DM_ScrollModuleBuffer(uint8_t NumCols2Scroll, uint8_t WhichModule) // scroll to the right
 {
   if (WhichModule > 3){
