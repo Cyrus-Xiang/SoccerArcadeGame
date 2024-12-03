@@ -117,8 +117,7 @@ bool InitSoccerFSM(uint8_t Priority)
   TRISBbits.TRISB1= 0; //RB1 output
   LATBbits.LATB1 = 0; //initialize buzzer as off
   //miss beam sensor 2
-  ANSELBbits.ANSB0= 0; //digital
-  TRISBbits.TRISB0= 1; //RB0 input
+  TRISAbits.TRISA0= 1; //RB0 input
   
   //PLAYER 1 SHOOT INDICATOR OUTPUT LED
   TRISBbits.TRISB11= 0; //RB11 output,, always digital
