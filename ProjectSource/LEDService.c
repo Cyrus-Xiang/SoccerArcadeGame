@@ -272,7 +272,11 @@ ES_Event_t RunLEDService(ES_Event_t ThisEvent)
           PostLEDService(Event2post);
         }
         break;
-
+        case EnterScrollMsgLED:{
+          Event2post.EventType = ES_INIT;
+          PostLEDService(Event2post);
+        }
+        break;
         
         default:
           break;
@@ -296,6 +300,7 @@ ES_Event_t RunLEDService(ES_Event_t ThisEvent)
       CurrentState = ScrollMsgMode;
       DM_ClearDisplayBuffer();
       ES_Timer_InitTimer(LED_Timer,ScrollTimeInterval_ms);
+      msg_ind = 0;
       DB_printf("Scroll message mode in LED Service\n");
     }break;
     //the LED matrix's row by row update runs in parallel in the background
@@ -343,7 +348,11 @@ ES_Event_t RunLEDService(ES_Event_t ThisEvent)
 void ChangeLongMsg(uint16_t WhichMsg){
   //stops the current scrolling of the message
   ES_Timer_StopTimer(LED_Timer);
-  DM_ClearDisplayBuffer();
+  //we don't want to accidentally clear the display when it's in score mode
+  if (CurrentState == ScrollMsgMode)
+  {
+    DM_ClearDisplayBuffer();
+  }
   switch (WhichMsg)
   {
   case  WelcomeMsg:

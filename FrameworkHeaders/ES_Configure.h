@@ -274,6 +274,7 @@ typedef enum
   DisableServo,
   ES_LED_Disp_Need_Update,
   EnterScoreLED,
+  EnterScrollMsgLED,
   BallShot,
   LED_ScoreUpdate,
   LED_RestartTimer4Player,

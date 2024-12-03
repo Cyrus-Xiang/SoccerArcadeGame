@@ -33,8 +33,8 @@
 #include "LEDService.h"
 /*----------------------------- Module Defines ----------------------------*/
 // these times assume a 10.000mS/tick timing
-#define TimePerRound_ms 11000
-#define TotalRounds 2
+#define TimePerRound_ms 10000
+#define TotalRounds 1
 #define InactiveTimeAllowed 20000
 /*---------------------------- Module Functions ---------------------------*/
 /* prototypes for private functions for this machine.They should be functions
@@ -115,12 +115,12 @@ bool InitSoccerFSM(uint8_t Priority)
   TRISBbits.TRISB1= 0; //RB1 output
   LATBbits.LATB1 = 0; //initialize buzzer as off
   //miss beam sensor 2
-<<<<<<< HEAD
+
   TRISAbits.TRISA0= 1; //RB0 input
-=======
+
   
   TRISAbits.TRISA4= 1; //RB0 input
->>>>>>> ab4a38960fa84957e5583e7690f0922255e69d29
+
   
   //PLAYER 1 SHOOT INDICATOR OUTPUT LED
   TRISBbits.TRISB11= 0; //RB11 output,, always digital
@@ -352,7 +352,7 @@ ES_Event_t RunSoccerFSM(ES_Event_t ThisEvent)
             DB_printf("went to Wait for Player 1 Ball \n");
             //post ballshot event to LED FSM so that it shuts down the timer on display
             Event2Post.EventType = BallShot;
-            PostLEDService(BallShot);
+            PostLEDService(Event2Post);
         }
     }
     break;
@@ -372,7 +372,7 @@ ES_Event_t RunSoccerFSM(ES_Event_t ThisEvent)
             DB_printf("went to wait 4 player2 ball \n");
             //post ballshot event to LED FSM so that it shuts down the timer on display
             Event2Post.EventType = BallShot;
-            PostLEDService(BallShot);
+            PostLEDService(Event2Post);
         }
     }
     break;
@@ -466,17 +466,20 @@ ES_Event_t RunSoccerFSM(ES_Event_t ThisEvent)
             // End game 
             NextState = Wait4Coin;  
             ReturnToWait4Coin();
+            //change matrix back to scrolling msg mode
+            Event2Post.EventType = EnterScrollMsgLED;
+            PostLEDService(Event2Post);
             //display winner
-            Event2Post.EventType = DisplayWinner;
+            Event2Post.EventType = LED_ChangeMsg;
             if (Player1Score > Player2Score)
             {
-              Event2Post.EventParam = 1;
+              Event2Post.EventParam = Player1WinMsg;
             }else if (Player1Score < Player2Score)
             {
-              Event2Post.EventParam = 2;
+              Event2Post.EventParam = Player2WinMsg;
             }else // it's a tie
             {
-              Event2Post.EventParam = 0;
+              Event2Post.EventParam = TieMsg;
             }
             PostLEDService(Event2Post);
             
