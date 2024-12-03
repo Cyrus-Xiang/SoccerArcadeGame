@@ -281,7 +281,8 @@ typedef enum
   BallPlaced,
   TurnBuzzerOn,
   UserInactivity,
-  LED_ChangeMsg
+  LED_ChangeMsg,
+  DummyEvent
  
           
 }ES_EventType_t;

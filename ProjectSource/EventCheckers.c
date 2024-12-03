@@ -141,7 +141,6 @@ bool Check4Coin(void)
         if(!CurrentCoinState){
             ThisEvent.EventType= CoinDetect;
             PostSoccerFSM(ThisEvent);
-//            DB_printf("coin detected in event checker \n");
         }
         ReturnVal = true;
     }     
@@ -162,7 +161,7 @@ bool Check4Goal(void)
 
     
     //initializing miss sensor readings on pin RB13
-//<<<<<<< HEAD
+
     bool CurrentMissState= PORTBbits.RB13;
     static bool LastMissState = 1;
     //initialize miss sensor 2 on pin RA4
