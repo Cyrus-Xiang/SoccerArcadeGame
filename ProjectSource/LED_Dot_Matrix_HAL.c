@@ -155,7 +155,7 @@ bool DM_TakeInitDisplayStep(void) // done
                                   // each call of DM_TakeDisplayUpdateStep() is only going to copy over one row
     while (false == DM_TakeDisplayUpdateStep())
     {
-    }                  // true means are buffer rows are transferred over
+    } // true means are buffer rows are transferred over
     CurrentInitStep++; // move on to next step
     break;
 
@@ -309,47 +309,50 @@ bool DM_QueryRowData(uint8_t RowToQuery, uint32_t *pReturnValue)
 // NEW FUNCTIONS FOR SOCCER PROJECT BELOW (NewAddChar2Buffer makes sure we are using the 3 modules)
 bool DM_AddChar2Buffer_Module(unsigned char Char2Display, uint8_t WhichModule)
 {
-    if (WhichModule > 3)
-    {
-      DB_printf("add char returned false\n");
-      return false;
-    }
-    
-    uint8_t WhichRow;
-    // Loop through every row in the character font (5 rows for each character)
-    for (WhichRow = 0; WhichRow < NUM_ROWS_IN_FONT; WhichRow++) {
-        // Get the byte representation of the font for this row
-        uint8_t FontLine = getFontLine(Char2Display, WhichRow);
-        // Based on the module number, we write the character to the appropriate display buffer
-        DM_Display[WhichRow].ByBytes[WhichModule] |= FontLine;  // Display in module 1
-    }
-    return true;
+  if (WhichModule > 3)
+  {
+    DB_printf("add char returned false\n");
+    return false;
+  }
+
+  uint8_t WhichRow;
+  // Loop through every row in the character font (5 rows for each character)
+  for (WhichRow = 0; WhichRow < NUM_ROWS_IN_FONT; WhichRow++)
+  {
+    // Get the byte representation of the font for this row
+    uint8_t FontLine = getFontLine(Char2Display, WhichRow);
+    // Based on the module number, we write the character to the appropriate display buffer
+    DM_Display[WhichRow].ByBytes[WhichModule] |= FontLine; // Display in module 1
+  }
+  return true;
 }
 
-
-bool DM_AddNum2Buffer_Module(uint8_t Num, uint8_t WhichModule) {
-  if (WhichModule > 3 || Num > 99){
-      return false;
-      DB_printf("add num to buffer returned false\n");
-    }
+bool DM_AddNum2Buffer_Module(uint8_t Num, uint8_t WhichModule)
+{
+  if (WhichModule > 3 || Num > 99)
+  {
+    return false;
+    DB_printf("add num to buffer returned false\n");
+  }
   char NumStr[2];
-  sprintf(NumStr, "%d", Num); 
-  DM_ScrollModuleBuffer(8, WhichModule);//clear the module buffer
-  DM_AddChar2Buffer_Module(NumStr[0],WhichModule);//display the first digit no matter what
-    if (Num > 9)
-    {
-      DM_ScrollModuleBuffer(4, WhichModule);//scroll the first digit before adding the second
-      DM_AddChar2Buffer_Module(NumStr[1],WhichModule);
-    }
-  
-    return true;
+  sprintf(NumStr, "%d", Num);
+  DM_ScrollModuleBuffer(8, WhichModule);            // clear the module buffer
+  DM_AddChar2Buffer_Module(NumStr[0], WhichModule); // display the first digit no matter what
+  if (Num > 9)
+  {
+    DM_ScrollModuleBuffer(4, WhichModule); // scroll the first digit before adding the second
+    DM_AddChar2Buffer_Module(NumStr[1], WhichModule);
+  }
+
+  return true;
 }
 
 bool DM_ScrollModuleBuffer(uint8_t NumCols2Scroll, uint8_t WhichModule) // scroll to the right
 {
-  if (WhichModule > 3){
-      return false;
-    }
+  if (WhichModule > 3)
+  {
+    return false;
+  }
   uint8_t WhichRow;
   // shift one column at a time
   for (size_t i = 0; i < NumCols2Scroll; i++)
@@ -362,7 +365,6 @@ bool DM_ScrollModuleBuffer(uint8_t NumCols2Scroll, uint8_t WhichModule) // scrol
   }
   return true;
 }
-
 
 //*********************************
 // private functions
@@ -410,4 +412,3 @@ static void sendRow(uint8_t RowNum, DM_Row_t RowData)
       ((((uint16_t)RowNum + 1) << 8) |
        BitReverseTable256[(RowData.ByBytes[index])]));
 }
-

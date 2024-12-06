@@ -123,16 +123,16 @@ ES_Event_t RunBuzzerService(ES_Event_t ThisEvent)
   switch (ThisEvent.EventType)
   {
   case TurnBuzzerOn:
-    LATBbits.LATB1 =1;
-    ES_Timer_InitTimer(BuzzerTimer,1500);
+    LATBbits.LATB1 = 1;
+    ES_Timer_InitTimer(BuzzerTimer, 1500);
     break;
   case ES_TIMEOUT:
     LATBbits.LATB1 = 0;
-  break;
+    break;
   default:
     break;
   }
-  
+
   return ReturnEvent;
 }
 
@@ -142,4 +142,3 @@ ES_Event_t RunBuzzerService(ES_Event_t ThisEvent)
 
 /*------------------------------- Footnotes -------------------------------*/
 /*------------------------------ End of file ------------------------------*/
-

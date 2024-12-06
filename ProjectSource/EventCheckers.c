@@ -40,208 +40,136 @@
 // actual functionsdefinition
 #include "EventCheckers.h"
 
-// This is the event checking function sample. It is not intended to be
-// included in the module. It is only here as a sample to guide you in writing
-// your own event checkers
-#if 0
 /****************************************************************************
- Function
-   Check4Lock
- Parameters
-   None
- Returns
-   bool: true if a new event was detected
- Description
-   Sample event checker grabbed from the simple lock state machine example
- Notes
-   will not compile, sample only
- Author
-   J. Edward Carryer, 08/06/13, 13:48
 ****************************************************************************/
-bool Check4Lock(void)
-{
-  static uint8_t  LastPinState = 0;
-  uint8_t         CurrentPinState;
-  bool            ReturnVal = false;
-
-  CurrentPinState = LOCK_PIN;
-  // check for pin high AND different from last time
-  // do the check for difference first so that you don't bother with a test
-  // of a port/variable that is not going to matter, since it hasn't changed
-  if ((CurrentPinState != LastPinState) &&
-      (CurrentPinState == LOCK_PIN_HI)) // event detected, so post detected event
-  {
-    ES_Event ThisEvent;
-    ThisEvent.EventType   = ES_LOCK;
-    ThisEvent.EventParam  = 1;
-    // this could be any of the service post functions, ES_PostListx or
-    // ES_PostAll functions
-    ES_PostAll(ThisEvent);
-    ReturnVal = true;
-  }
-  LastPinState = CurrentPinState; // update the state for next time
-
-  return ReturnVal;
-}
-
-#endif
-
-/****************************************************************************
- Function
-   Check4Keystroke
- Parameters
-   None
- Returns
-   bool: true if a new key was detected & posted
- Description
-   checks to see if a new key from the keyboard is detected and, if so,
-   retrieves the key and posts an ES_NewKey event to TestHarnessService0
- Notes
-   The functions that actually check the serial hardware for characters
-   and retrieve them are assumed to be in ES_Port.c
-   Since we always retrieve the keystroke when we detect it, thus clearing the
-   hardware flag that indicates that a new key is ready this event checker
-   will only generate events on the arrival of new characters, even though we
-   do not internally keep track of the last keystroke that we retrieved.
- Author
-   J. Edward Carryer, 08/06/13, 13:48
-****************************************************************************/
-
-bool Check4BallPlacement(void){
-      ES_Event_t ThisEvent;
-  //initialize current local variables
-    bool ReturnVal = false;
-    bool CurrentPlacementState= PORTBbits.RB4; //defining to read input of placement sensor on RB4
-    static bool LastPlacementState = 1;
-    //check to see if different coin state (switch from low to high indicates the end of coin passing through)
-    if(CurrentPlacementState != LastPlacementState){
-        //if it is returning high coin just passed through
-        if(!CurrentPlacementState){
-            ThisEvent.EventType= BallPlaced;
-            PostSoccerFSM(ThisEvent);
-           DB_printf("ball place detected in event checker \n");
-           ReturnVal = true;
-        }
-    LastPlacementState= CurrentPlacementState;
-    }     
-  
-  return ReturnVal;
-}
-//need to check the high to low input to determine coin insert
+// need to check the high to low input to determine coin insert
 bool Check4Coin(void)
 {
-    ES_Event_t ThisEvent;
-  //initialize current local variables
-    bool ReturnVal = false;
-    bool CurrentCoinState= PORTBbits.RB8; //defining to read input of coin sensor on RB6, and maybe include FSM in this event checker
-    static bool LastCoinState = 1;
-    //check to see if different coin state (switch from low to high indicates the end of coin passing through)
-    if(CurrentCoinState != LastCoinState){
-        //if it is returning high coin just passed through
-        if(!CurrentCoinState){
-            ThisEvent.EventType= CoinDetect;
-            PostSoccerFSM(ThisEvent);
-        }
-        ReturnVal = true;
-    }     
-  LastCoinState= CurrentCoinState;
+  ES_Event_t Event2Post;
+  // initialize current local variables
+  bool ReturnVal = false;
+  bool CurrentCoinState = PORTBbits.RB8; // defining to read input of coin sensor on RB6, and maybe include FSM in this event checker
+  static bool LastCoinState = 1;
+  // check to see if different coin state (switch from low to high indicates the end of coin passing through)
+  if (CurrentCoinState != LastCoinState)
+  {
+    // if it is returning high coin just passed through
+    if (!CurrentCoinState)
+    {
+      Event2Post.EventType = CoinDetected;
+      PostSoccerFSM(Event2Post);
+    }
+    ReturnVal = true;
+  }
+  LastCoinState = CurrentCoinState;
   return ReturnVal;
 }
 
+bool Check4BallPlacement(void)
+{
+  ES_Event_t Event2Post;
+  // initialize current local variables
+  bool ReturnVal = false;
+  bool CurrentPlacementState = PORTBbits.RB4; // defining to read input of placement sensor on RB4
+  static bool LastPlacementState = 1;
+  if (CurrentPlacementState != LastPlacementState)
+  {
+    // if it is returning high coin just passed through
+    if (!CurrentPlacementState)
+    {
+      Event2Post.EventType = BallPlaced;
+      PostSoccerFSM(Event2Post);
+      DB_printf("ball place detected in event checker \n");
+      ReturnVal = true;
+    }
+    LastPlacementState = CurrentPlacementState;
+  }
+
+  return ReturnVal;
+}
 
 bool Check4Goal(void)
 {
-    ES_Event_t ThisEvent;
-  //initialize current local variables
-    bool ReturnVal = false;
-    
-    //initializing goal sensor readings
-    bool CurrentGoalState= PORTBbits.RB9; //defining to read input of goal sensor on RB9, and maybe include FSM in this event checker
-    static bool LastGoalState = 1;
+  ES_Event_t Event2Post;
+  // initializing goal sensor readings
+  bool GoalSensorState = PORTBbits.RB9; // defining to read input of goal sensor on RB9, and maybe include FSM in this event checker
+  static bool LastGoalState = 1;        // HIGH means nothing is detected
 
-    
-    //initializing miss sensor readings on pin RB13
+  // initializing miss sensor readings on pin RB13
+  bool MissSensorState = PORTBbits.RB13;
+  static bool LastMissState = 1;
 
-    bool CurrentMissState= PORTBbits.RB13;
-    static bool LastMissState = 1;
-    //initialize miss sensor 2 on pin RA4
-    bool CurrentMissState1= PORTAbits.RA4;
-    static bool LastMissState1 = 1;
+  // initialize miss sensor 2 on pin RA4
+  bool MissSensorState1 = PORTAbits.RA4;
+  static bool LastMissState1 = 1;
 
-    if (CurrentMissState1 != LastMissState1)
+  // check if the goal sensor reads a different value from last time (switch from low to high indicates the end of ball passing through goal)
+  if (GoalSensorState != LastGoalState)
+  {
+    // if it is returning high, ball just passed through
+    if (!GoalSensorState)
     {
-      if(!CurrentMissState1){
-            ThisEvent.EventType= GoalBeamBroken;
-            PostSoccerFSM(ThisEvent);
-            PostTestHarnessService0(ThisEvent);
-        }
-        ReturnVal = true;
+      Event2Post.EventType = GoalBeamBroken;
+      return true;
     }
-    LastMissState1 = CurrentMissState1;
-
-    //check to see if different goal state (switch from low to high indicates the end of ball passing through goal)
-    if(CurrentGoalState != LastGoalState){
-        //if it is returning high, ball just passed through
-        if(!CurrentGoalState){
-            ThisEvent.EventType= GoalBeamBroken;
-            PostSoccerFSM(ThisEvent);
-            PostTestHarnessService0(ThisEvent);
-          ReturnVal = true;
-        }
-        
-    }
-    else if(CurrentMissState != LastMissState){
-        if(!CurrentMissState){
-            ThisEvent.EventType= MissBeamBroken;
-            PostSoccerFSM(ThisEvent);
-            PostTestHarnessService0(ThisEvent);
-            ReturnVal = true;
-        }
-    }else if (CurrentMissState1 != LastMissState1)
+  }
+  // check miss sensor
+  if (MissSensorState != LastMissState)
+  {
+    if (!MissSensorState)
     {
-            ThisEvent.EventType= MissBeamBroken;
-            PostSoccerFSM(ThisEvent);
-            PostTestHarnessService0(ThisEvent);
-            ReturnVal = true;
+      Event2Post.EventType = MissBeamBroken;
     }
-  LastMissState1 = CurrentMissState1;
-  LastGoalState= CurrentGoalState;
-  LastMissState= CurrentMissState;
-  return ReturnVal;
+    return true;
+  }
+  // check the other miss sensor
+  if (MissSensorState1 != LastMissState1)
+  {
+    if (!MissSensorState1)
+    {
+      Event2Post.EventType = MissBeamBroken;
+    }
+    return true;
+  }
+  LastGoalState = GoalSensorState;
+  LastMissState = MissSensorState;
+  LastMissState1 = MissSensorState1;
+  return false;
 }
 
-
-bool Check4Shot(void)
+bool Check4ShotButton(void)
 {
-    ES_Event_t ThisEvent;
-  //initialize current local variables
-    bool ReturnVal = false;
-    bool CurrentShotState= PORTBbits.RB5; //defining to read input of shot sensor
-    static bool LastShotState = 0;
-    
-    //check to see if different Shot state (switch from low to high indicates the button is pressed)
-    if(CurrentShotState != LastShotState){
-        //if it is returning high coin just passed through
-        if(CurrentShotState){
-            ThisEvent.EventType= ShotButtonDown;
-            PostSoccerFSM(ThisEvent);
-            ReturnVal = true;
-        }
-        
-    }     
-  LastShotState= CurrentShotState;
+  ES_Event_t Event2Post;
+  // initialize current local variables
+  bool ReturnVal = false;
+  bool CurrentShotState = PORTBbits.RB5; // defining to read input of shot sensor
+  static bool LastShotState = 0;
+
+  // check to see if different Shot state (switch from low to high indicates the button is pressed)
+  if (CurrentShotState != LastShotState)
+  {
+    // if it is returning high coin just passed through
+    if (CurrentShotState)
+    {
+      Event2Post.EventType = ShotButtonPushed;
+      PostSoccerFSM(Event2Post);
+      ReturnVal = true;
+    }
+  }
+  LastShotState = CurrentShotState;
   return ReturnVal;
 }
 
 bool Check4Keystroke(void)
+// This is for debugging purposes and allows keyboard interactions
 {
   if (IsNewKeyReady()) // new key waiting?
   {
-    ES_Event_t ThisEvent;
-    ThisEvent.EventType = ES_NEW_KEY;
-    ThisEvent.EventParam = GetNewKey();
-    PostTestHarnessService0(ThisEvent);
-    //PostLEDService(ThisEvent);
+    ES_Event_t Event2Post;
+    Event2Post.EventType = ES_NEW_KEY;
+    Event2Post.EventParam = GetNewKey();
+    PostTestHarnessService0(Event2Post);
+    // PostLEDService(Event2Post);
     return true;
   }
   return false;
@@ -252,19 +180,19 @@ bool Check4Pot(void)
 {
   int32_t diff_AD1;
   static uint32_t Curr_AD_Val1[1];
-  static uint32_t Last_AD_Val1[] ={0};
-  ADC_MultiRead(Curr_AD_Val1);//10 bits, 0-1023 corresponding to 0-3.3V
-  diff_AD1 = abs( Curr_AD_Val1[0] - Last_AD_Val1[0]);
-  if (diff_AD1 > 20){
-      Last_AD_Val1[0] = Curr_AD_Val1[0];
-      ES_Event_t ThisEvent;
-      ThisEvent.EventType = Pot_Val_Update;
-      ThisEvent.EventParam = (uint16_t) Curr_AD_Val1[0];
-      PostServoService(ThisEvent);
-      PostSoccerFSM(ThisEvent);
-      return true;
-      }
+  static uint32_t Last_AD_Val1[] = {0};
+  ADC_MultiRead(Curr_AD_Val1); // 10 bits, 0-1023 corresponding to 0-3.3V
+  diff_AD1 = abs(Curr_AD_Val1[0] - Last_AD_Val1[0]);
+  // we only send event to ther service if the change in reading is significant
+  if (diff_AD1 > 20)
+  {
+    Last_AD_Val1[0] = Curr_AD_Val1[0];
+    ES_Event_t Event2Post;
+    Event2Post.EventType = Pot_Val_Update;
+    Event2Post.EventParam = (uint16_t)Curr_AD_Val1[0];
+    PostServoService(Event2Post);
+    PostSoccerFSM(Event2Post);
+    return true;
+  }
   return false;
 }
-
-

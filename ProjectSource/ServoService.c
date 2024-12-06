@@ -38,21 +38,19 @@
 // with the introduction of Gen2, we need a module level Priority variable
 // #define AD_Channel (1 << 0)
 // #define Num_AD_Channels  1
-  #define PWM_period_us 20000
-  #define low_PW_us 500
-  #define upper_PW_us 2500
-  #define ticks_per_us 2.5
+#define PWM_period_us 20000
+#define low_PW_us 500
+#define upper_PW_us 2500
+#define ticks_per_us 2.5
 // static uint32_t LastAD_Val [Num_AD_Channels];
-  static uint8_t MyPriority;
-  int32_t diff_AD;
-  static uint32_t Curr_AD_Val[1];
-  static uint32_t Last_AD_Val[] ={0};
-  static uint8_t DutyCycle;
-  static uint16_t PulseWidth;
-  static uint16_t Pot_reading;
-  static uint16_t PW_mid_us;
-  static uint16_t PW_range_us;
-  static bool moveAllowed = false;
+static uint8_t MyPriority;
+int32_t diff_AD;
+static uint8_t DutyCycle;
+static uint16_t PulseWidth;
+static uint16_t Pot_reading;
+static uint16_t PW_mid_us;
+static uint16_t PW_range_us;
+static bool moveAllowed = false;
 
 /*------------------------------ Module Code ------------------------------*/
 /****************************************************************************
@@ -82,23 +80,23 @@ bool InitServoService(uint8_t Priority)
    in here you write your initialization code
    *******************************************/
 
-  //initialze pins for for potentiometer
-  ADC_ConfigAutoScan(BIT9HI);//bit5 corresponds to AN5/RB3
-  TRISBbits.TRISB15 = 1; // configure the pin as input
-  ANSELBbits.ANSB15 = 1; // Configure RB15 as analog IO
-  // ADC_MultiRead(LastAD_Val);
-  
-  //initialize PWM for motor control
+  // initialze pins for for potentiometer
+  ADC_ConfigAutoScan(BIT9HI); // bit5 corresponds to AN5/RB3
+  TRISBbits.TRISB15 = 1;      // configure the pin as input
+  ANSELBbits.ANSB15 = 1;      // Configure RB15 as analog IO
+
+
+  // initialize PWM for motor control
   PWMSetup_BasicConfig(1);
   PWMSetup_SetPeriodOnTimer(PWM_period_us * ticks_per_us, _Timer2_);
-  DB_printf("PWM period is set to %u ticks \n",PWM_period_us * ticks_per_us);
-  PWMSetup_AssignChannelToTimer(1,_Timer2_);
+  DB_printf("PWM period is set to %u ticks \n", PWM_period_us * ticks_per_us);
+  PWMSetup_AssignChannelToTimer(1, _Timer2_);
   PWMSetup_MapChannelToOutputPin(1, PWM_RPB3);
   PW_range_us = upper_PW_us - low_PW_us;
-  PW_mid_us = (uint16_t) PW_range_us/2 + low_PW_us;
+  PW_mid_us = (uint16_t)PW_range_us / 2 + low_PW_us;
   PulseWidth = PW_mid_us * ticks_per_us;
-  
-  PWMOperate_SetPulseWidthOnChannel(PulseWidth,1);
+
+  PWMOperate_SetPulseWidthOnChannel(PulseWidth, 1);
 
   // post the initial transition event
   ThisEvent.EventType = ES_INIT;
@@ -161,19 +159,25 @@ ES_Event_t RunServoService(ES_Event_t ThisEvent)
    *******************************************/
   switch (ThisEvent.EventType)
   {
-  case EnableServo:{
+  case EnableServo:
+  {
     moveAllowed = true;
   }
   break;
-  case DisableServo:{
+  case DisableServo:
+  {
     moveAllowed = false;
+    //return to the neutral position
+    PulseWidth = PW_mid_us * ticks_per_us;
+    PWMOperate_SetPulseWidthOnChannel(PulseWidth, 1);
   }
   break;
-  case Pot_Val_Update:{
+  case Pot_Val_Update:
+  {
     // DB_printf("Pot_Val_update event received in servo service n");
     // DB_printf(" %u \n",ThisEvent.EventParam);
     Pot_reading = ThisEvent.EventParam;
-    PulseWidth =(uint16_t) ((double)(Pot_reading/1024.0)*PW_range_us + low_PW_us)*ticks_per_us;
+    PulseWidth = (uint16_t)((double)(Pot_reading / 1024.0) * PW_range_us + low_PW_us) * ticks_per_us;
     if (moveAllowed)
     {
       PWMOperate_SetPulseWidthOnChannel(PulseWidth, 1);
@@ -193,4 +197,3 @@ ES_Event_t RunServoService(ES_Event_t ThisEvent)
 
 /*------------------------------- Footnotes -------------------------------*/
 /*------------------------------ End of file ------------------------------*/
-

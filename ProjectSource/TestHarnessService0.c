@@ -227,7 +227,7 @@ ES_Event_t RunTestHarnessService0(ES_Event_t ThisEvent)
       //     (char)ThisEvent.EventParam);
           if ('c'==ThisEvent.EventParam)
           {
-            Event2Post.EventType = CoinDetect;
+            Event2Post.EventType = CoinDetected;
             PostSoccerFSM(Event2Post);
           }
           if ('g'==ThisEvent.EventParam)
@@ -242,7 +242,7 @@ ES_Event_t RunTestHarnessService0(ES_Event_t ThisEvent)
           }
           if ('s'==ThisEvent.EventParam)
           {
-            Event2Post.EventType = ShotButtonDown;
+            Event2Post.EventType = ShotButtonPushed;
             PostSoccerFSM(Event2Post);
           }
           if ('p'==ThisEvent.EventParam)

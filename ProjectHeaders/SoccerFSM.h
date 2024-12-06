@@ -16,10 +16,12 @@
 // State definitions for use with the query function
 typedef enum
 {
-  InitPState, Wait4Coin, Wait4PlayerShot, 
-   Wait4PlayerBall, EndGameReached,
-  Wait4BallPlacement, Wait4BallPlacement2
-}SoccerState_t;
+  InitPState,
+  Wait4Coin,
+  Wait4PlayerShot,
+  Wait4BallReturn,
+  Wait4BallPlacement,
+} SoccerState_t;
 
 // Public Function Prototypes
 
@@ -32,4 +34,3 @@ bool CheckBallReturnPlayer2();
 SoccerState_t QuerySoccerFSM(void);
 
 #endif /* FSMTemplate_H */
-

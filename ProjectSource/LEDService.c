@@ -49,7 +49,7 @@ static uint16_t msg_ind = 0;
 static LED_MatrixState_t CurrentState;
 static uint16_t Player1Score = 0;
 static uint16_t Player2Score = 0;
-static int8_t TimeLeft_s; //count down time for solenoid shot
+static int8_t TimeLeft_s; // count down time for solenoid shot
 static uint16_t TimePerRound_s;
 #define ScrollTimeInterval_ms 300
 
@@ -74,29 +74,35 @@ static uint16_t TimePerRound_s;
 ****************************************************************************/
 bool InitLEDService(uint8_t Priority)
 {
-  ///Set needed non-constant variables////////
-  //static uint8_t char_pos1 = 0; 
-  // Setup SPI using SPI HAL
+  /// Set needed non-constant variables////////
+  // static uint8_t char_pos1 = 0;
+  //  Setup SPI using SPI HAL
 
-    SPISetup_DisableSPI(SPI_SPI1); // Turn off SPI
-    //
-    //  //Config everything
-    SPISetup_BasicConfig(SPI_SPI1);
-    SPISetup_SetLeader(SPI_SPI1, SPI_SMP_MID);
-    SPISetup_MapSSOutput(SPI_SPI1, SPI_RPA0);
-    SPISetup_MapSDOutput(SPI_SPI1, SPI_RPA1);
-    SPISetup_SetClockIdleState(SPI_SPI1, SPI_CLK_HI);
-    SPISetup_SetActiveEdge(SPI_SPI1, SPI_SECOND_EDGE);
-    SPISetEnhancedBuffer(SPI_SPI1, true);
-    SPISetup_SetXferWidth(SPI_SPI1, SPI_16BIT);
-    SPISetup_SetBitTime(SPI_SPI1, 1e9 / 100e3);
-    //  //Turn SPI back on
-    SPISetup_EnableSPI(SPI_SPI1);
-  while (!SPIOperate_HasSS1_Risen()){} // needed for the first two messages to be sperated
-  //Setup LED matrix
-while ( false == DM_TakeInitDisplayStep() ){}
-// DM_AddChar2DisplayBuffer('I');//a initialization message
-while (false == DM_TakeDisplayUpdateStep()){  }
+  SPISetup_DisableSPI(SPI_SPI1); // Turn off SPI
+  //
+  //  //Config everything
+  SPISetup_BasicConfig(SPI_SPI1);
+  SPISetup_SetLeader(SPI_SPI1, SPI_SMP_MID);
+  SPISetup_MapSSOutput(SPI_SPI1, SPI_RPA0);
+  SPISetup_MapSDOutput(SPI_SPI1, SPI_RPA1);
+  SPISetup_SetClockIdleState(SPI_SPI1, SPI_CLK_HI);
+  SPISetup_SetActiveEdge(SPI_SPI1, SPI_SECOND_EDGE);
+  SPISetEnhancedBuffer(SPI_SPI1, true);
+  SPISetup_SetXferWidth(SPI_SPI1, SPI_16BIT);
+  SPISetup_SetBitTime(SPI_SPI1, 1e9 / 100e3);
+  //  //Turn SPI back on
+  SPISetup_EnableSPI(SPI_SPI1);
+  while (!SPIOperate_HasSS1_Risen())
+  {
+  } // needed for the first two messages to be sperated
+  // Setup LED matrix
+  while (false == DM_TakeInitDisplayStep())
+  {
+  }
+  // DM_AddChar2DisplayBuffer('I');//a initialization message
+  while (false == DM_TakeDisplayUpdateStep())
+  {
+  }
   ES_Event_t ThisEvent;
 
   MyPriority = Priority;
@@ -106,7 +112,7 @@ while (false == DM_TakeDisplayUpdateStep()){  }
 
   // post the initial transition event
   ThisEvent.EventType = ES_INIT;
-  DB_printf( "LED Service Initiated \n");
+  DB_printf("LED Service Initiated \n");
   if (ES_PostToService(MyPriority, ThisEvent) == true)
   {
     return true;
@@ -160,183 +166,193 @@ ES_Event_t RunLEDService(ES_Event_t ThisEvent)
 {
   ES_Event_t ReturnEvent;
   ReturnEvent.EventType = ES_NO_EVENT; // assume no errors
- LED_MatrixState_t NextState = CurrentState;
+  LED_MatrixState_t NextState = CurrentState;
   ES_Event_t Event2post;
-  switch (CurrentState) {
-    case ScrollMsgMode:{
-      switch (ThisEvent.EventType)
-      {
-      case EnterScoreLED:{
-        NextState = ScoreMode;
-        TimePerRound_s = ThisEvent.EventParam;
-        ES_Timer_StopTimer(LED_Timer);
-        DM_ClearDisplayBuffer();
-        //reset the timer and update display buffer
-        TimeLeft_s = TimePerRound_s;
-        //clear players scores and update display buffer
-        Player1Score = 0; 
-        Player2Score = 0;
-        DM_AddNum2Buffer_Module(Player1Score,3);
-        DM_AddNum2Buffer_Module(Player2Score,1);
-        //add a VS on the 2nd module
-        DM_AddChar2Buffer_Module('V',2);
-        DM_ScrollModuleBuffer(4,2);
-        DM_AddChar2Buffer_Module('S',2);
-        Event2post.EventType = ES_LED_Disp_Need_Update;
-        PostLEDService(Event2post);
-      }
-      break;
-      case ES_TIMEOUT:{
-        if (ThisEvent.EventParam == LED_Timer)
-        {
-          // DB_printf("LED Timer timed out \n");
-          ES_Timer_InitTimer(LED_Timer, ScrollTimeInterval_ms);
-          ES_Event_t event2post;
-          event2post.EventType = ES_NEW_KEY;
-          if (msg_ind < MsgLength)
-          {
-            event2post.EventParam = LongMsg[msg_ind];
-            msg_ind++;
-          }else{ 
-            event2post.EventParam = LongMsg[0];
-            msg_ind = 1;
-          }   
-          ES_PostToService(MyPriority, event2post);
-        }
-        
-      }
-      break;
-      case ES_NEW_KEY:   
-      {
-        DM_ScrollDisplayBuffer(4);
-        DM_AddChar2DisplayBuffer((char)ThisEvent.EventParam);
-        //DB_printf("updating the LED display \n");
-        ES_Event_t event2post;
-        event2post.EventType = ES_LED_Disp_Need_Update;
-        ES_PostToService(MyPriority, event2post);
-      }
-      break;
-      default:
-      break;
-      }   
+  switch (CurrentState)
+  {
+  case ScrollMsgMode:
+  {
+    switch (ThisEvent.EventType)
+    {
+    case EnterScoreMode:
+    {
+      NextState = ScoreBoardMode;
+      TimePerRound_s = ThisEvent.EventParam;
+      ES_Timer_StopTimer(Scroll_Timer);
+      DM_ClearDisplayBuffer();
+      // reset the timer and update display buffer
+      TimeLeft_s = TimePerRound_s;
+      // clear players scores and update display buffer
+      Player1Score = 0;
+      Player2Score = 0;
+      DM_AddNum2Buffer_Module(Player1Score, 3);
+      DM_AddNum2Buffer_Module(Player2Score, 1);
+      // add a VS on the 2nd module
+      DM_AddChar2Buffer_Module('V', 2);
+      DM_ScrollModuleBuffer(4, 2);
+      DM_AddChar2Buffer_Module('S', 2);
+      Event2post.EventType = ES_LED_Disp_Need_Update;
+      PostLEDService(Event2post);
     }
     break;
-    case ScoreMode:{
-        switch (ThisEvent.EventType)
+    case ES_TIMEOUT:
+    {
+      if (ThisEvent.EventParam == Scroll_Timer)
+      {
+        // DB_printf("LED Timer timed out \n");
+        ES_Timer_InitTimer(Scroll_Timer, ScrollTimeInterval_ms);
+        char newChar;
+        if (msg_ind < MsgLength)
         {
+          newChar= LongMsg[msg_ind];
+          msg_ind++;
+        }
+        else
+        {
+          newChar = LongMsg[0];
+          msg_ind = 1;
+        }
+      DM_ScrollDisplayBuffer(4);
+      DM_AddChar2DisplayBuffer(newChar);
+      // DB_printf("updating the LED display \n");
+      ES_Event_t event2post;
+      event2post.EventType = ES_LED_Disp_Need_Update;
+      ES_PostToService(MyPriority, event2post);
+      }
+    }
+    break;
 
-        case ES_TIMEOUT:{
-          if (ThisEvent.EventParam == LED_Timer4Player)
-          {
-            if (TimeLeft_s > 0)
-            {
-              TimeLeft_s --;//update time left
-              DM_AddNum2Buffer_Module(TimeLeft_s,0);
-              Event2post.EventType = ES_LED_Disp_Need_Update;
-              PostLEDService(Event2post);
-              ES_Timer_InitTimer(LED_Timer4Player,1000);
-            }else // meaning there is no time left
-            {
-              ES_Timer_StopTimer(LED_Timer4Player);
-            } 
-          }
-        }
-        break;
-        case BallShot:{
-          TimeLeft_s = 1;
-          
-        }
-        break;
-        case LED_RestartTimer4Player:{
-          TimeLeft_s = TimePerRound_s;
-          DM_AddNum2Buffer_Module(TimeLeft_s,0);
+    default:
+      break;
+    }
+  }
+  break;
+  case ScoreBoardMode:
+  {
+    switch (ThisEvent.EventType)
+    {
+
+    case ES_TIMEOUT:
+    {
+      if (ThisEvent.EventParam == ShotLock_Timer4LED)
+      {
+        if (TimeLeft_s > 0)
+        {
+          TimeLeft_s--; // update time left
+          DM_AddNum2Buffer_Module(TimeLeft_s, 0);
           Event2post.EventType = ES_LED_Disp_Need_Update;
           PostLEDService(Event2post);
-          //init local timer for counting time left for player for display purpose
-          ES_Timer_InitTimer(LED_Timer4Player,1000);
+          ES_Timer_InitTimer(ShotLock_Timer4LED, 1000);
         }
-        break;
-        
-        case LED_ScoreUpdate:{
-          //event param contains the information of which player's score to update
-          if (ThisEvent.EventParam == 1)
-          {
-            Player1Score++;
-            DM_AddNum2Buffer_Module(Player1Score,3);
-          }else if (ThisEvent.EventParam == 2)
-          {
-            Player2Score++;
-            DM_AddNum2Buffer_Module(Player2Score,1);
-          }
-          Event2post.EventType = ES_LED_Disp_Need_Update;
-          PostLEDService(Event2post);
+        else // meaning there is no time left
+        {
+          ES_Timer_StopTimer(ShotLock_Timer4LED);
         }
-        break;
-        case EnterScrollMsgLED:{
-          Event2post.EventType = ES_INIT;
-          PostLEDService(Event2post);
-        }
-        break;
-        
-        default:
-          break;
-        }
+      }
     }
     break;
-    
+    case BallShot:
+    {
+      TimeLeft_s = 1;
+    }
+    break;
+    case LED_StartShotLockTimer:
+    {
+      TimeLeft_s = TimePerRound_s;
+      DM_AddNum2Buffer_Module(TimeLeft_s, 0);
+      Event2post.EventType = ES_LED_Disp_Need_Update;
+      PostLEDService(Event2post);
+      // init local timer for counting time left for player for display purpose
+      ES_Timer_InitTimer(ShotLock_Timer4LED, 1000);
+    }
+    break;
+
+    case LED_ScoreUpdate:
+    {
+      // event param contains the information of which player's score to update
+      if (ThisEvent.EventParam == 1)
+      {
+        Player1Score++;
+        DM_AddNum2Buffer_Module(Player1Score, 3);
+      }
+      else if (ThisEvent.EventParam == 2)
+      {
+        Player2Score++;
+        DM_AddNum2Buffer_Module(Player2Score, 1);
+      }
+      Event2post.EventType = ES_LED_Disp_Need_Update;
+      PostLEDService(Event2post);
+    }
+    break;
+    case EnterScrollMode:
+    {
+      Event2post.EventType = ES_INIT;
+      PostLEDService(Event2post);
+    }
+    break;
+
     default:
+      break;
+    }
+  }
+  break;
+
+  default:
     break;
   }
   CurrentState = NextState;
 
-   
-  //below is independent of the FSM and doing its own thing
-  
-  
+  // below is independent of the FSM and doing its own thing
+
   switch (ThisEvent.EventType)
   {
-    case ES_INIT:
+  case ES_INIT:
+  {
+    CurrentState = ScrollMsgMode;
+    DM_ClearDisplayBuffer();
+    ES_Timer_InitTimer(Scroll_Timer, ScrollTimeInterval_ms);
+    msg_ind = 0;
+    DB_printf("Scroll message mode in LED Service\n");
+  }
+  break;
+  // the LED matrix's row by row update runs in parallel in the background
+  case ES_LED_Disp_Need_Update:
+  {
+    if (DM_TakeDisplayUpdateStep() == false)
     {
-      CurrentState = ScrollMsgMode;
-      DM_ClearDisplayBuffer();
-      ES_Timer_InitTimer(LED_Timer,ScrollTimeInterval_ms);
-      msg_ind = 0;
-      DB_printf("Scroll message mode in LED Service\n");
-    }break;
-    //the LED matrix's row by row update runs in parallel in the background
-    case ES_LED_Disp_Need_Update:
-    {
-      if (DM_TakeDisplayUpdateStep() == false)
-      {
-        ES_Event_t event2post;
-        event2post.EventType = ES_LED_Disp_Need_Update;
-        ES_PostToService(MyPriority, event2post);
-      }
-      
-    }break;
-    //check user inactivity
-    case UserInactivity:{
-        CurrentState = ScrollMsgMode;
-        ChangeLongMsg(InactivityMsg);
-        //the inactivity msg is only displayed for some period of time before we return to welcome msg
-        ES_Timer_InitTimer(LED_InactivityMsgTimer,10000);
+      ES_Event_t event2post;
+      event2post.EventType = ES_LED_Disp_Need_Update;
+      ES_PostToService(MyPriority, event2post);
     }
-    break;
-    case ES_TIMEOUT:{
-    //the inactivity msg is only displayed for some period of time before we return to welcome msg
+  }
+  break;
+  // check user inactivity
+  case UserInactivity:
+  {
+    CurrentState = ScrollMsgMode;
+    ChangeLongMsg(InactivityMsg);
+    // the inactivity msg is only displayed for some period of time before we return to welcome msg
+    ES_Timer_InitTimer(LED_InactivityMsgTimer, 10000);
+  }
+  break;
+  case ES_TIMEOUT:
+  {
+    // the inactivity msg is only displayed for some period of time before we return to welcome msg
     if (ThisEvent.EventParam == LED_InactivityMsgTimer)
-        {
-          //change back to the welcome message
-         ChangeLongMsg(WelcomeMsg);
-        }
-    }break;
-    //command from the main FSM to change the current long msg being displayed
-    case LED_ChangeMsg:{
-        ChangeLongMsg(ThisEvent.EventParam);
-    }break;
-    default:
+    {
+      // change back to the welcome message
+      ChangeLongMsg(WelcomeMsg);
+    }
+  }
+  break;
+  // command from the main FSM to change the current long msg being displayed
+  case LED_ChangeMsg:
+  {
+    ChangeLongMsg(ThisEvent.EventParam);
+  }
+  break;
+  default:
     break;
-  
   }
   return ReturnEvent;
 }
@@ -344,24 +360,25 @@ ES_Event_t RunLEDService(ES_Event_t ThisEvent)
 /***************************************************************************
  private functions
  ***************************************************************************/
-//The function will clear the module, init LED Timer send LED_needs_update event
-void ChangeLongMsg(uint16_t WhichMsg){
-  //stops the current scrolling of the message
-  ES_Timer_StopTimer(LED_Timer);
-  //we don't want to accidentally clear the display when it's in score mode
+// The function will clear the module, init LED Timer send LED_needs_update event
+void ChangeLongMsg(uint16_t WhichMsg)
+{
+  // stops the current scrolling of the message
+  ES_Timer_StopTimer(Scroll_Timer);
+  // we don't want to accidentally clear the display when it's in score mode
   if (CurrentState == ScrollMsgMode)
   {
     DM_ClearDisplayBuffer();
   }
   switch (WhichMsg)
   {
-  case  WelcomeMsg:
+  case WelcomeMsg:
     LongMsg = "PLEASE INSERT COINS ";
     MsgLength = 20;
     break;
   case InactivityMsg:
     LongMsg = "TIMEOUT DUE TO USER INACTIVITY ";
-    MsgLength = 31;      
+    MsgLength = 31;
     break;
   case Player1WinMsg:
     LongMsg = "PLAYER 1 WINS ";
@@ -387,13 +404,11 @@ void ChangeLongMsg(uint16_t WhichMsg){
     break;
   }
   msg_ind = 0;
-  ES_Timer_InitTimer(LED_Timer,ScrollTimeInterval_ms);
-  //update the LED matrix
+  ES_Timer_InitTimer(Scroll_Timer, ScrollTimeInterval_ms);
+  // update the LED matrix
   ES_Event_t Event2post;
   Event2post.EventType = ES_LED_Disp_Need_Update;
   PostLEDService(Event2post);
-  
 }
 /*------------------------------- Footnotes -------------------------------*/
 /*------------------------------ End of file ------------------------------*/
-

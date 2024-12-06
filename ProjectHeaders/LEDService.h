@@ -15,11 +15,12 @@
 // State definitions for use with the query function
 typedef enum
 {
-    ScrollMsgMode,
-    ScoreMode,
-}LED_MatrixState_t;
+  ScrollMsgMode,
+  ScoreBoardMode,
+} LED_MatrixState_t;
 
-enum WhichMsgEnum{
+enum WhichMsgEnum
+{
   WelcomeMsg,
   Player1WinMsg,
   Player2WinMsg,
@@ -35,4 +36,3 @@ bool PostLEDService(ES_Event_t ThisEvent);
 ES_Event_t RunLEDService(ES_Event_t ThisEvent);
 
 #endif /* SerUltra_H */
-

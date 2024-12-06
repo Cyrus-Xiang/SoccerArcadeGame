@@ -262,8 +262,8 @@ typedef enum
   ES_NEW_KEY,               /* signals a new key received from terminal */
   ES_LOCK,
   ES_UNLOCK,
-          CoinDetect,
-          ShotButtonDown,
+          CoinDetected,
+          ShotButtonPushed,
           GoalBeamBroken,
           MissBeamBroken,
           ES_WAITBUFFER,
@@ -273,11 +273,11 @@ typedef enum
   EnableServo,
   DisableServo,
   ES_LED_Disp_Need_Update,
-  EnterScoreLED,
-  EnterScrollMsgLED,
+  EnterScoreMode,
+  EnterScrollMode,
   BallShot,
   LED_ScoreUpdate,
-  LED_RestartTimer4Player,
+  LED_StartShotLockTimer,
   BallPlaced,
   TurnBuzzerOn,
   UserInactivity,
@@ -319,7 +319,7 @@ typedef enum
 
 /****************************************************************************/
 // This is the list of event checking functions
-#define EVENT_CHECK_LIST Check4Coin, Check4Goal, Check4Shot, Check4Keystroke, Check4Pot, Check4BallPlacement
+#define EVENT_CHECK_LIST Check4Coin, Check4Goal, Check4ShotButton, Check4Keystroke, Check4Pot, Check4BallPlacement
 
 
 
@@ -355,10 +355,10 @@ typedef enum
 // These symbolic names should be changed to be relevant to your application
 
 #define SERVICE0_TIMER 15
-#define SHOTCLOCK_TIMER 14
+#define ShotLock_Timer 14
 #define Solenoid_shutdown_timer 13
-#define LED_Timer 12 // this timer is for updating scrolling text like in lab3
-#define LED_Timer4Player 11 // this timer is for the count down time of solenoid shot
+#define Scroll_Timer 12 // this timer is for updating scrolling text like in lab3
+#define ShotLock_Timer4LED 11 // this timer is for the count down time of solenoid shot
 #define BuzzerTimer 10
 #define InactivityTimer 9
 #define LED_InactivityMsgTimer 8
